@@ -9,6 +9,7 @@ RUN apt-get update \
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY pages ./pages
+COPY utils ./utils
 COPY schemas ./schemas
 COPY data ./data
 COPY Home.py ./
