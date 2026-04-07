@@ -14,11 +14,11 @@ To run without Docker:
 streamlit run Home.py
 ```
 
-## Docker And AWS Credentials
+## Docker
 
 To run with docker:
 
-1. Mount your AWS profile directory into the container.
+1. Configure AWS credentials with `aws configure` (this writes `~/.aws/credentials` and `~/.aws/config`).
 2. Run the app:
 
 ```bash
