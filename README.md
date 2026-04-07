@@ -25,17 +25,8 @@ To run with docker:
 docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 ```
 
-## Schemas
-
-- Prebuilt schemas: `schemas/prebuilt_schemas.json`
-- Custom schemas: `schemas/custom_schemas.json`
-
-Custom schemas override prebuilt ones when names overlap.
-
-## Runs
-
-All extraction runs are stored in `data/runs/` with input filenames, output JSON, and logs.
-
 ## Notes
 
+- All extraction runs are stored in `data/runs/` with input filenames, output JSON, and logs.
+- Custom schemas override prebuilt ones when names overlap.
 - Keep AWS credentials in `~/.aws/credentials`; do not hardcode secrets.
