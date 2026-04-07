@@ -10,7 +10,7 @@ from PIL import Image
 
 from src.config import load_config
 from src.domain.models import SchemaField
-from src.integrations.openai_client import get_chat_completion
+from src.integrations.bedrock_client import get_chat_completion
 
 
 DEFAULT_EXTRACTION_PROMPT = """You extract structured metadata from documents.

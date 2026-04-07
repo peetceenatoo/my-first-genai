@@ -27,7 +27,7 @@ st.caption("Review configuration, models, and environment status.")
 
 section_title("🔐 Environment")
 cols = st.columns(3)
-cols[0].metric("OpenAI key", "✅ Found" if config.openai_api_key else "❌ Missing")
+cols[0].metric("AWS region", config.aws_region)
 cols[1].metric("Timeout (s)", config.request_timeout_s)
 cols[2].metric("Max retries", config.max_retries)
 
@@ -47,8 +47,9 @@ st.write(f"Runs: `{config.run_store_dir}`")
 section_spacer("lg")
 section_title("📝 Notes")
 st.info(
-    "To update models or pipeline settings, set the environment variables in your `.env` file. "
-    "Run `streamlit run Home.py` after changing them.",
+    "AWS credentials are resolved from the shared credentials/profile files (for example "
+    "`~/.aws/credentials` and `~/.aws/config`) or from an IAM role. "
+    "Run `streamlit run Home.py` after changing settings.",
     icon="📝",
 )
 

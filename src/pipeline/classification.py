@@ -8,7 +8,7 @@ from typing import Any
 from PIL import Image
 
 from src.config import load_config
-from src.integrations.openai_client import get_chat_completion
+from src.integrations.bedrock_client import get_chat_completion
 from src.logging import get_logger
 
 

@@ -4,12 +4,7 @@ Extractly is a Streamlit app for defining document schemas, classifying incoming
 
 ## Quickstart
 
-1. Create a `.env` file with your API keys:
-
-```
-OPENAI_API_KEY=your_key_here
-```
-
+1. Configure AWS credentials with `aws configure` (this writes `~/.aws/credentials` and `~/.aws/config`).
 2. Install dependencies (for example with `uv` or `pip`).
 3. Run the app:
 
@@ -44,5 +39,16 @@ All extraction runs are stored in `data/runs/` with input filenames, output JSON
 
 ## Notes
 
-- Update models and retries via `.env` using the `EXTRACTLY_*` variables.
-- Keep API keys in environment variables only; do not hardcode secrets.
+- Keep AWS credentials in `~/.aws/credentials`; do not hardcode secrets.
+
+## Docker And AWS Credentials
+
+When running with Docker, credentials are not copied into the image by default.
+
+- Mount your AWS profile directory into the container.
+
+Example:
+
+```bash
+docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
+```
