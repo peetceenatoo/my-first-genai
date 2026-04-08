@@ -1,6 +1,6 @@
 {
   "Carta d'Identità": {
-    "description": "Dettagli della carta d'identita italiana.",
+    "description": "Dettagli della carta d'identita italiana di una persona.",
     "version": "v1",
     "fields": [
       {
@@ -98,7 +98,7 @@
     ]
   },
   "Carta di circolazione": {
-    "description": "Dettagli della carta di circolazione italiana.",
+    "description": "Dettagli della carta di circolazione italiana di un veicolo.",
     "version": "v1",
     "fields": [
       {
