@@ -11,9 +11,9 @@ from PIL import Image
 
 from src.domain.models import DocumentSchema
 from src.domain.run_store import ExtractionRun, RunDocument, RunStore
-from src.integrations.ocr import run_ocr
 from src.pipeline.classification import classify_document
 from src.pipeline.extraction import extract_metadata
+from src.pipeline.ocr import run_ocr
 from src.logging import get_logger
 
 
@@ -111,7 +111,7 @@ def run_pipeline(
         images_for_llm = images if max_pages is None else images[:max_pages]
 
         logs.append(f"Parsing {filename}")
-        ocr_text = payload.get("ocr_text")
+        ocr_text = payload.get("ocr_text") # in case input document was text already
         if ocr_text is None and options.enable_ocr:
             ocr_text = run_ocr(images)
 
@@ -159,7 +159,6 @@ def run_pipeline(
                                 images_for_llm,
                                 schema_for_doc.fields,
                                 ocr_text=ocr_text,
-                                with_confidence=False,
                                 system_prompt=options.extraction_prompt,
                             )
                             votes.append(extraction.get("metadata", {}))
@@ -174,7 +173,6 @@ def run_pipeline(
                             images_for_llm,
                             schema_for_doc.fields,
                             ocr_text=ocr_text,
-                            with_confidence=False,
                             system_prompt=options.extraction_prompt,
                         )
                         extracted = extraction.get("metadata", {})
