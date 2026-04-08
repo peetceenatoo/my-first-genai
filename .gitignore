@@ -103,6 +103,3 @@ credentials.json
 # Miscellanous
 *.pkl
 *.xlsx
-
-# Feedback files
-feedback.json
