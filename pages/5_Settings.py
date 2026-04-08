@@ -36,7 +36,7 @@ section_title("🧠 Models")
 model_cols = st.columns(3)
 model_cols[0].text_input("Classifier model", value=config.classify_model, disabled=True)
 model_cols[1].text_input("Extractor model", value=config.extract_model, disabled=True)
-model_cols[2].text_input("OCR model", value=config.ocr_model, disabled=True)
+model_cols[2].text_input("OCR provider", value=config.ocr_provider, disabled=True)
 
 section_spacer("lg")
 section_title("📁 Directories")

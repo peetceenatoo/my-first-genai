@@ -30,3 +30,6 @@ docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 - All extraction runs are stored in `data/runs/` with input filenames, output JSON, and logs.
 - All schemas are stored in a single file (`schemas/schemas.json`) with unique schema names.
 - Keep AWS credentials in `~/.aws/credentials`; do not hardcode secrets.
+- OCR is performed with AWS Textract (`DetectDocumentText`) to provide cleaner text context for extraction.
+- Classification and metadata extraction continue to use Amazon Bedrock models.
+- Ensure IAM permissions include both Bedrock runtime access and `textract:DetectDocumentText`.
