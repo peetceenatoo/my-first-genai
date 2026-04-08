@@ -25,7 +25,7 @@ st.markdown(
     """
     <div class="extractly-hero">
         <h1>Extractly: Metadata Extraction Studio</h1>
-        <p>Design schemas, classify incoming documents, and extract structured metadata in minutes. Built for
+        <p>Design schemas, optionally classify incoming documents, and extract structured metadata in minutes. Built for
         client-ready demos with traceability, exports, and run history baked in.</p>
     </div>
     """,
@@ -50,7 +50,7 @@ steps[0].markdown(
     """
     <div class="extractly-step">
         <strong>Step A — Define a schema</strong>
-        <p>Design fields, types, and requirements in Schema Studio or import JSON templates.</p>
+        <p>Design fields, types, and requirements in Schema Studio, import JSON templates.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -59,7 +59,7 @@ steps[1].markdown(
     """
     <div class="extractly-step">
         <strong>Step B — Upload documents</strong>
-        <p>Batch PDFs, images, or text. Enable OCR or fast mode depending on fidelity.</p>
+        <p>Batch PDFs, images, or text. Enable OCR to enhance accuracy of extraction or Classification to infer the document schema.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -93,7 +93,7 @@ features[1].markdown(
     """
     <div class="extractly-card">
         <h4>Extraction Pipeline</h4>
-        <p>Classification, extraction, validation, and export with transparent logs.</p>
+        <p>Schema-first extraction with optional classification, validation, and export.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -110,8 +110,3 @@ features[2].markdown(
 
 section_spacer("lg")
 section_spacer("md")
-
-st.info(
-    "Need configuration? Visit Settings to review model choice, retries, and environment checks.",
-    icon="⚙️",
-)
