@@ -20,6 +20,7 @@ Rules:
 - Use empty string when a value is missing or unreadable.
 - Preserve the document's wording, casing, punctuation, and units.
 - Do not infer or fabricate values not present in the document.
+- Values may appear without any label in the image: look for the value itself, not just the label.
 """
 
 
@@ -58,7 +59,6 @@ def extract_metadata(
     fields: list[SchemaField],
     *,
     ocr_text: str | None = None,
-    with_confidence: bool = False,
     system_prompt: str | None = None,
 ) -> dict[str, Any]:
     config = load_config()
@@ -66,11 +66,6 @@ def extract_metadata(
 
     field_lines = "\n".join(_render_field(field) for field in fields)
     instructions = "Return a JSON object with keys exactly matching the field names."
-    if with_confidence:
-        instructions = (
-            "Return JSON with two objects: `metadata` (field values) and "
-            "`confidence` (0-1 confidence per field)."
-        )
 
     parts = [
         instructions,
@@ -92,12 +87,6 @@ def extract_metadata(
 
     response = get_chat_completion(messages, model=config.extract_model)
     payload = _safe_json(response)
+    metadata = payload if isinstance(payload, dict) else {}
 
-    if with_confidence:
-        metadata = payload.get("metadata", payload if isinstance(payload, dict) else {})
-        confidence = payload.get("confidence", {})
-    else:
-        metadata = payload if isinstance(payload, dict) else {}
-        confidence = {}
-
-    return {"metadata": metadata, "confidence": confidence}
+    return {"metadata": metadata, "confidence": {}}
