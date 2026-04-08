@@ -20,8 +20,7 @@ class AppConfig:
     max_retries: int
     retry_backoff_s: float
     run_store_dir: Path
-    prebuilt_schemas_path: Path
-    custom_schemas_path: Path
+    schemas_path: Path
 
 
 def load_config() -> AppConfig:
@@ -48,16 +47,10 @@ def load_config() -> AppConfig:
         run_store_dir=Path(
             os.getenv("EXTRACTLY_RUNS_DIR", PROJECT_ROOT / "data" / "runs")
         ),
-        prebuilt_schemas_path=Path(
+        schemas_path=Path(
             os.getenv(
-                "EXTRACTLY_PREBUILT_SCHEMAS_PATH",
-                schema_dir / "prebuilt_schemas.json",
-            )
-        ),
-        custom_schemas_path=Path(
-            os.getenv(
-                "EXTRACTLY_CUSTOM_SCHEMAS_PATH",
-                schema_dir / "custom_schemas.json",
+                "EXTRACTLY_SCHEMAS_PATH",
+                schema_dir / "schemas.json",
             )
         ),
     )

@@ -50,7 +50,7 @@ steps[0].markdown(
     """
     <div class="extractly-step">
         <strong>Step A — Define a schema</strong>
-        <p>Design fields, types, and requirements in Schema Studio, import JSON templates.</p>
+        <p>Design fields, types, and requirements of documents in the Schema Studio.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -68,7 +68,7 @@ steps[2].markdown(
     """
     <div class="extractly-step">
         <strong>Step C — Review results</strong>
-        <p>View JSON, confidence scores, warnings, and exportable tables.</p>
+        <p>View extracted data, confidence scores, warnings and export tables.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -84,7 +84,7 @@ features[0].markdown(
     """
     <div class="extractly-card">
         <h4>Schema Studio</h4>
-        <p>Field editor, JSON preview, templates, and validation in one place.</p>
+        <p>Field editor, JSON preview, schemas, and validation in one place.</p>
     </div>
     """,
     unsafe_allow_html=True,

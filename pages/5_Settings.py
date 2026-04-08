@@ -40,6 +40,5 @@ model_cols[2].text_input("OCR model", value=config.ocr_model, disabled=True)
 
 section_spacer("lg")
 section_title("📁 Directories")
-st.write(f"Prebuilt schemas: `{config.prebuilt_schemas_path}`")
-st.write(f"Custom schemas: `{config.custom_schemas_path}`")
+st.write(f"Schemas: `{config.schemas_path}`")
 st.write(f"Runs: `{config.run_store_dir}`")

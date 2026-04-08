@@ -9,127 +9,65 @@ from src.domain.validation import validate_schema, ValidationResult
 
 
 class SchemaStore:
-    def __init__(self, prebuilt_path: Path, custom_path: Path):
-        self.prebuilt_path = prebuilt_path
-        self.custom_path = custom_path
-        self.prebuilt_path.parent.mkdir(parents=True, exist_ok=True)
-        self.custom_path.parent.mkdir(parents=True, exist_ok=True)
-        if not self.prebuilt_path.exists():
-            self._write_payload(self.prebuilt_path, {})
-        if not self.custom_path.exists():
-            self._write_payload(self.custom_path, {})
+    def __init__(self, schemas_path: Path):
+        self.schemas_path = schemas_path
+        self.schemas_path.parent.mkdir(parents=True, exist_ok=True)
+        if not self.schemas_path.exists():
+            self._write_payload(self.schemas_path, {})
 
     def list_schemas(self) -> list[DocumentSchema]:
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        custom_payload = self._load_payload(self.custom_path)
-        prebuilt_payload = self._dedupe_prebuilt(prebuilt_payload, custom_payload)
-        prebuilt_map = self._parse_payload_map(prebuilt_payload)
-        custom_map = self._parse_payload_map(custom_payload)
-        merged = {**prebuilt_map, **custom_map}
-        return sorted(merged.values(), key=lambda s: s.name.lower())
+        payload = self._load_payload(self.schemas_path)
+        schemas = self._parse_payload_map(payload)
+        return sorted(schemas.values(), key=lambda s: s.name.lower())
 
     def get_schema(self, name: str) -> DocumentSchema | None:
-        custom_payload = self._load_payload(self.custom_path)
-        if name in custom_payload:
-            return self._parse_payload_map({name: custom_payload[name]}).get(name)
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        if name in prebuilt_payload:
-            return self._parse_payload_map({name: prebuilt_payload[name]}).get(name)
-        return None
-
-    def get_schema_source(self, name: str) -> str | None:
-        custom_payload = self._load_payload(self.custom_path)
-        if name in custom_payload:
-            return "custom"
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        if name in prebuilt_payload:
-            return "prebuilt"
+        payload = self._load_payload(self.schemas_path)
+        if name in payload:
+            return self._parse_payload_map({name: payload[name]}).get(name)
         return None
 
     def save_schema(
         self,
         schema: DocumentSchema,
         *,
-        source: str | None = None,
         original_name: str | None = None,
     ) -> ValidationResult:
         validation = validate_schema(schema)
         if not validation.is_valid:
             return validation
 
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        custom_payload = self._load_payload(self.custom_path)
-        prebuilt_payload = self._dedupe_prebuilt(prebuilt_payload, custom_payload)
+        payload = self._load_payload(self.schemas_path)
+        name_in_use = schema.name in payload
+        is_rename = bool(original_name and original_name != schema.name)
 
-        if source == "prebuilt":
-            target_payload = prebuilt_payload
-            target_path = self.prebuilt_path
-            if schema.name in custom_payload:
-                target_payload = custom_payload
-                target_path = self.custom_path
-        elif source == "custom":
-            target_payload = custom_payload
-            target_path = self.custom_path
-        else:
-            target_payload = custom_payload
-            target_path = self.custom_path
+        if original_name is None and name_in_use:
+            return ValidationResult(
+                is_valid=False,
+                errors=[f"Schema '{schema.name}' already exists."],
+                warnings=[],
+            )
+
+        if is_rename and name_in_use:
+            return ValidationResult(
+                is_valid=False,
+                errors=[f"Schema '{schema.name}' already exists."],
+                warnings=[],
+            )
 
         if original_name and original_name != schema.name:
-            target_payload.pop(original_name, None)
+            payload.pop(original_name, None)
 
-        target_payload[schema.name] = schema.to_dict()
-        self._write_payload(target_path, target_payload)
-
-        if target_path == self.custom_path and schema.name in prebuilt_payload:
-            prebuilt_payload.pop(schema.name, None)
-            self._write_payload(self.prebuilt_path, prebuilt_payload)
+        payload[schema.name] = schema.to_dict()
+        self._write_payload(self.schemas_path, payload)
         return validation
 
     def delete_schema(self, name: str) -> bool:
-        custom_payload = self._load_payload(self.custom_path)
-        if name in custom_payload:
-            custom_payload.pop(name)
-            self._write_payload(self.custom_path, custom_payload)
-            return True
-
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        if name in prebuilt_payload:
-            prebuilt_payload.pop(name)
-            self._write_payload(self.prebuilt_path, prebuilt_payload)
+        payload = self._load_payload(self.schemas_path)
+        if name in payload:
+            payload.pop(name)
+            self._write_payload(self.schemas_path, payload)
             return True
         return False
-
-    def import_payload(self, payload: dict) -> list[DocumentSchema]:
-        schemas = list(self._parse_payload_map(payload).values())
-        custom_payload = self._load_payload(self.custom_path)
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        prebuilt_payload = self._dedupe_prebuilt(prebuilt_payload, custom_payload)
-
-        for schema in schemas:
-            validation = validate_schema(schema)
-            if not validation.is_valid:
-                continue
-            custom_payload[schema.name] = schema.to_dict()
-            prebuilt_payload.pop(schema.name, None)
-
-        self._write_payload(self.custom_path, custom_payload)
-        self._write_payload(self.prebuilt_path, prebuilt_payload)
-        return schemas
-
-    def import_prebuilt_payload(self, payload: dict) -> list[DocumentSchema]:
-        schemas = list(self._parse_payload_map(payload).values())
-        prebuilt_payload = self._load_payload(self.prebuilt_path)
-        custom_payload = self._load_payload(self.custom_path)
-
-        for schema in schemas:
-            validation = validate_schema(schema)
-            if not validation.is_valid:
-                continue
-            prebuilt_payload[schema.name] = schema.to_dict()
-
-        prebuilt_payload = self._dedupe_prebuilt(prebuilt_payload, custom_payload)
-        self._write_payload(self.prebuilt_path, prebuilt_payload)
-        return schemas
 
     def export_schema(self, schema: DocumentSchema) -> str:
         return json.dumps({schema.name: schema.to_dict()}, indent=2, ensure_ascii=False)
@@ -151,16 +89,6 @@ class SchemaStore:
     def _write_payload(path: Path, payload: dict) -> None:
         with path.open("w", encoding="utf-8") as fp:
             json.dump(payload, fp, indent=2, ensure_ascii=False)
-
-    def _dedupe_prebuilt(self, prebuilt: dict, custom: dict) -> dict:
-        duplicate_names = set(prebuilt).intersection(custom)
-        if not duplicate_names:
-            return prebuilt
-        cleaned = dict(prebuilt)
-        for name in duplicate_names:
-            cleaned.pop(name, None)
-        self._write_payload(self.prebuilt_path, cleaned)
-        return cleaned
 
     def _parse_payload_map(self, payload: dict) -> dict[str, DocumentSchema]:
         schemas: dict[str, DocumentSchema] = {}
@@ -184,13 +112,18 @@ class SchemaStore:
 
     @staticmethod
     def _parse_field(field: dict) -> SchemaField:
+        raw_enum = field.get("enum", field.get("enum_values", [])) or []
+        enum_values = [
+            str(item).lower() if isinstance(item, bool) else str(item)
+            for item in list(raw_enum)
+        ]
         return SchemaField(
             name=str(field.get("name", "")).strip(),
             field_type=field.get("type", field.get("field_type", "string")),
             required=bool(field.get("required", False)),
             description=str(field.get("description", "")),
             example=str(field.get("example", "")),
-            enum_values=list(field.get("enum", field.get("enum_values", [])) or []),
+            enum_values=enum_values,
         )
 
 

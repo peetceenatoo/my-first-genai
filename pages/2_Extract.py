@@ -23,7 +23,7 @@ from src.ui.components import (
 
 config = load_config()
 setup_logging()
-store = SchemaStore(config.prebuilt_schemas_path, config.custom_schemas_path)
+store = SchemaStore(config.schemas_path)
 run_store = RunStore(config.run_store_dir)
 
 st.set_page_config(page_title="Extract", page_icon="⚡", layout="wide")

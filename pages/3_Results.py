@@ -65,27 +65,10 @@ if use_classification is None:
 classification_label = "ON" if use_classification else "OFF"
 
 
-def _normalize_key(value: str) -> str:
-    return " ".join(str(value).strip().lower().split())
-
-
-def _is_holder_photograph_field(field_name: str) -> bool:
-    return _normalize_key(field_name) in {
-        "holder photograph",
-        "holder_photo",
-        "holder photo",
-    }
-
-
-def _holder_photograph_label(value: object) -> str:
+def _boolean_presence_label(value: object) -> str:
     if isinstance(value, bool):
-        return "Presente" if value else "Non presente"
-    normalized = _normalize_key(str(value))
-    if normalized in {"1", "true", "yes", "y", "presente", "present"}:
-        return "Presente"
-    if normalized in {"0", "false", "no", "n", "non presente", "absent"}:
-        return "Non presente"
-    return "Presente" if normalized else "Non presente"
+        return "Yes" if value else "No"
+    return str(value)
 
 section_spacer("lg")
 section_title("Run summary")
@@ -277,11 +260,7 @@ if selected_doc:
 
     field_rows = []
     for key, value in corrected_payload.items():
-        display_value = (
-            _holder_photograph_label(value)
-            if _is_holder_photograph_field(key)
-            else value
-        )
+        display_value = _boolean_presence_label(value)
         confidence_value = field_confidence.get(key, "")
         status_label = ""
         if (

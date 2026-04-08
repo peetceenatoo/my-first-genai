@@ -1,7 +1,6 @@
 # sourcery skip: hoist-if-from-if
 from __future__ import annotations
 
-import json
 import pandas as pd
 from pathlib import Path
 import streamlit as st
@@ -9,10 +8,7 @@ import streamlit as st
 from src.config import load_config
 from src.domain.schema_store import SchemaStore, schemas_to_table, table_to_schema
 from src.domain.validation import validate_schema
-from src.integrations.ocr import run_ocr
-from src.integrations.preprocess import preprocess
 from src.logging import setup_logging
-from src.pipeline.schema_suggest import suggest_schema_from_sample
 from src.ui.components import (
     inject_branding,
     inject_global_styles,
@@ -23,7 +19,7 @@ from src.ui.components import (
 
 config = load_config()
 setup_logging()
-store = SchemaStore(config.prebuilt_schemas_path, config.custom_schemas_path)
+store = SchemaStore(config.schemas_path)
 
 st.set_page_config(page_title="Schema Studio", page_icon="🧬", layout="wide")
 
@@ -44,11 +40,11 @@ with st.sidebar:
             "Choose schema",
             options=schema_names,
             index=None,
-            placeholder="Select a template",
+            placeholder="Select a schema",
         )
     else:
         selected_name = None
-        st.caption("No templates yet. Upload a prebuilt schema to start.")
+        st.caption("No schemas yet. Create one to start.")
     previous_selection = st.session_state.get("schema_selector_prev")
     if selected_name != previous_selection:
         st.session_state["schema_selector_prev"] = selected_name
@@ -62,7 +58,6 @@ with st.sidebar:
                 },
                 "name": selected_schema.name,
                 "description": selected_schema.description,
-                "source": store.get_schema_source(selected_schema.name) or "custom",
                 "original_name": selected_schema.name,
                 "loaded_name": selected_schema.name,
             }
@@ -74,10 +69,10 @@ if "schema_editor_version" not in st.session_state:
     st.session_state["schema_editor_version"] = 0
 if "loaded_schema_name" not in st.session_state:
     st.session_state["loaded_schema_name"] = None
-if "schema_source" not in st.session_state:
-    st.session_state["schema_source"] = "custom"
 if "schema_original_name" not in st.session_state:
     st.session_state["schema_original_name"] = None
+if "schema_show_validation" not in st.session_state:
+    st.session_state["schema_show_validation"] = False
 
 payload = st.session_state["schema_payload"]
 if "schema_name_input" not in st.session_state:
@@ -90,7 +85,6 @@ if pending_update:
     st.session_state["schema_payload"] = pending_update["payload"]
     st.session_state["schema_name_input"] = pending_update["name"]
     st.session_state["schema_description_input"] = pending_update["description"]
-    st.session_state["schema_source"] = pending_update["source"]
     st.session_state["schema_original_name"] = pending_update["original_name"]
     st.session_state["loaded_schema_name"] = pending_update["loaded_name"]
     st.session_state["schema_editor_version"] = (
@@ -110,9 +104,6 @@ if existing_schema and loaded_name != normalized_name:
     }
     st.session_state["schema_name_input"] = existing_schema.name
     st.session_state["schema_description_input"] = existing_schema.description
-    st.session_state["schema_source"] = (
-        store.get_schema_source(existing_schema.name) or "custom"
-    )
     st.session_state["schema_original_name"] = existing_schema.name
     st.session_state["loaded_schema_name"] = existing_schema.name
     st.session_state["schema_editor_version"] += 1
@@ -126,7 +117,6 @@ if not existing_schema and loaded_name is not None:
     }
     st.session_state["schema_name_input"] = normalized_name
     st.session_state["schema_description_input"] = ""
-    st.session_state["schema_source"] = "custom"
     st.session_state["schema_original_name"] = None
     st.session_state["loaded_schema_name"] = None
     st.session_state["schema_editor_version"] += 1
@@ -144,10 +134,7 @@ normalized_name = name.strip()
 if normalized_name:
     loaded_label = st.session_state.get("loaded_schema_name")
     if loaded_label:
-        source_label = st.session_state.get("schema_source") or "custom"
-        st.caption(
-            f"Loaded {source_label} schema: {loaded_label}. Rename to start fresh."
-        )
+        st.caption(f"Loaded schema: {loaded_label}. Rename to start fresh.")
     else:
         st.caption("No matching schema found. You're editing a new schema draft.")
 
@@ -242,26 +229,28 @@ section_spacer("lg")
 col_a, col_b = st.columns([1, 1])
 with col_a:
     if st.button("💾 Save schema", width="stretch"):
+        st.session_state["schema_show_validation"] = True
         result = store.save_schema(
             schema,
-            source=st.session_state.get("schema_source"),
             original_name=st.session_state.get("schema_original_name"),
         )
         if result.is_valid:
             st.success("Schema saved.")
+            if not validation.warnings:
+                st.session_state["schema_show_validation"] = False
             st.session_state["schema_payload"] = {
                 "name": schema.name,
                 "description": schema.description,
                 "rows": schemas_to_table(schema),
             }
-            st.session_state["schema_source"] = (
-                store.get_schema_source(schema.name) or "custom"
-            )
             st.session_state["schema_original_name"] = schema.name
             st.session_state["loaded_schema_name"] = schema.name
             st.rerun()
         else:
-            st.error("Schema failed validation. Fix errors below.")
+            if result.errors:
+                st.error("\n".join(result.errors))
+            else:
+                st.error("Schema failed validation. Fix errors below.")
 
 with col_b:
     if st.button(
@@ -281,7 +270,6 @@ with col_b:
                 }
                 pending_name = stored.name
                 pending_description = stored.description
-                pending_source = store.get_schema_source(loaded_name) or "custom"
                 pending_original_name = loaded_name
                 pending_loaded_name = loaded_name
             else:
@@ -292,7 +280,6 @@ with col_b:
                 }
                 pending_name = ""
                 pending_description = ""
-                pending_source = "custom"
                 pending_original_name = None
                 pending_loaded_name = None
         else:
@@ -303,14 +290,12 @@ with col_b:
             }
             pending_name = ""
             pending_description = ""
-            pending_source = "custom"
             pending_original_name = None
             pending_loaded_name = None
         st.session_state["schema_pending_update"] = {
             "payload": pending_payload,
             "name": pending_name,
             "description": pending_description,
-            "source": pending_source,
             "original_name": pending_original_name,
             "loaded_name": pending_loaded_name,
         }
@@ -346,100 +331,15 @@ with st.sidebar:
             "payload": {"name": "", "description": "", "rows": []},
             "name": "",
             "description": "",
-            "source": "custom",
             "original_name": None,
             "loaded_name": None,
         }
         st.rerun()
-
-    st.markdown("---")
-    st.subheader("Generate from sample")
-    sample = st.file_uploader(
-        "Upload a sample document",
-        type=["pdf", "png", "jpg", "jpeg", "txt"],
-        key="schema_sample_upload",
-    )
-    use_ocr = st.toggle("Use OCR assist", value=True, key="schema_sample_ocr")
-    if st.button(
-        "Generate schema draft",
-        width="stretch",
-        disabled=sample is None,
-    ):
-        if not sample:
-            st.error("Upload a sample document first.")
-        else:
-            with st.spinner("Generating schema draft..."):
-                images = []
-                ocr_text = None
-                if sample.name.lower().endswith(".txt"):
-                    ocr_text = sample.read().decode("utf-8", errors="ignore")
-                else:
-                    images = preprocess(sample, sample.name)
-                    if use_ocr:
-                        ocr_text = run_ocr(images)
-
-                suggested = suggest_schema_from_sample(
-                    images=images,
-                    ocr_text=ocr_text,
-                    sample_name=sample.name if sample else None,
-                )
-                raw_fields = (
-                    suggested.get("fields", []) if isinstance(suggested, dict) else []
-                )
-                if not isinstance(raw_fields, list):
-                    raw_fields = []
-                rows = []
-                for field in raw_fields:
-                    enum_values = field.get("enum", field.get("enum_values", [])) or []
-                    rows.append(
-                        {
-                            "name": field.get("name", ""),
-                            "type": field.get(
-                                "type", field.get("field_type", "string")
-                            ),
-                            "required": bool(field.get("required", False)),
-                            "description": field.get("description", ""),
-                            "example": field.get("example", ""),
-                            "enum": ", ".join(enum_values),
-                        }
-                    )
-
-                st.session_state["schema_pending_update"] = {
-                    "payload": {
-                        "name": suggested.get("name", "")
-                        if isinstance(suggested, dict)
-                        else "",
-                        "description": suggested.get("description", "")
-                        if isinstance(suggested, dict)
-                        else "",
-                        "rows": rows,
-                    },
-                    "name": suggested.get("name", "")
-                    if isinstance(suggested, dict)
-                    else "",
-                    "description": suggested.get("description", "")
-                    if isinstance(suggested, dict)
-                    else "",
-                    "source": "custom",
-                    "original_name": None,
-                    "loaded_name": None,
-                }
-                st.rerun()
-
-    st.markdown("---")
-    st.subheader("Prebuilt schemas")
-    upload = st.file_uploader("Upload prebuilt schema JSON", type=["json"])
-    if upload:
-        try:
-            payload = json.load(upload)
-            imported = store.import_prebuilt_payload(payload)
-            st.success(f"Imported {len(imported)} schema(s) into prebuilt.")
-            st.rerun()
-        except Exception as exc:
-            st.error(f"Import failed: {exc}")
     st.caption("Use the name field to load an existing schema or start a new one.")
 
-if validation.errors or validation.warnings:
+if st.session_state.get("schema_show_validation") and (
+    validation.errors or validation.warnings
+):
     section_spacer()
     section_title("Validation")
     st.caption("Checks schema name, field types, duplicates, and enum values.")
