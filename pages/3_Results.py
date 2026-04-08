@@ -11,7 +11,6 @@ import streamlit as st
 
 from src.config import load_config
 from src.domain.run_store import RunStore
-from src.logging import setup_logging
 from src.ui.components import (
     inject_branding,
     inject_global_styles,
@@ -21,7 +20,6 @@ from src.ui.components import (
 
 
 config = load_config()
-setup_logging()
 run_store = RunStore(config.run_store_dir)
 
 st.set_page_config(page_title="Results", page_icon="📊", layout="wide")

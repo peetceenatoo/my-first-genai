@@ -8,7 +8,6 @@ import streamlit as st
 from src.config import load_config
 from src.domain.schema_store import SchemaStore, schemas_to_table, table_to_schema
 from src.domain.validation import validate_schema
-from src.logging import setup_logging
 from src.ui.components import (
     inject_branding,
     inject_global_styles,
@@ -18,7 +17,6 @@ from src.ui.components import (
 
 
 config = load_config()
-setup_logging()
 store = SchemaStore(config.schemas_path)
 
 st.set_page_config(page_title="Schema Studio", page_icon="🧬", layout="wide")

@@ -9,10 +9,6 @@ from PIL import Image
 
 from src.config import load_config
 from src.integrations.bedrock_client import get_chat_completion
-from src.logging import get_logger
-
-
-logger = get_logger(__name__)
 
 
 DEFAULT_CLASSIFIER_PROMPT = """Sei un classificatore di documenti rigoroso.

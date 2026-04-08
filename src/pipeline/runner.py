@@ -14,10 +14,6 @@ from src.domain.run_store import ExtractionRun, RunDocument, RunStore
 from src.pipeline.classification import classify_document
 from src.pipeline.extraction import extract_metadata
 from src.pipeline.ocr import run_ocr
-from src.logging import get_logger
-
-
-logger = get_logger(__name__)
 
 
 @dataclass
@@ -41,7 +37,6 @@ def run_pipeline(
     progress_callback: Callable[[str, float], None] | None = None,
 ) -> ExtractionRun:  # sourcery skip: low-code-quality
     run_id = run_store.create_run_id()
-    logs: list[str] = []
     documents: list[RunDocument] = []
 
     max_pages = None
@@ -110,7 +105,6 @@ def run_pipeline(
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        logs.append(f"Parsing {filename}")
         ocr_text = payload.get("ocr_text") # in case input document was text already
         if ocr_text is None and options.enable_ocr:
             ocr_text = run_ocr(images)
@@ -127,11 +121,9 @@ def run_pipeline(
             )
             doc_type = classification.get("doc_type", "Unknown")
             confidence = classification.get("confidence")
-            logs.append(f"Classified {filename} as {doc_type}")
         else:
             doc_type = default_schema.name if default_schema else "Unknown"
             confidence = None
-            logs.append(f"Using selected schema for {filename}: {doc_type}")
             report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
 
         warnings: list[str] = []
@@ -177,7 +169,6 @@ def run_pipeline(
                         )
                         extracted = extraction.get("metadata", {})
                 except Exception as exc:
-                    logger.error("Extraction failed for %s: %s", filename, exc)
                     errors.append(str(exc))
 
         preview_image = encode_preview(images)
@@ -207,7 +198,6 @@ def run_pipeline(
         ),
         documents=documents,
         use_classification=options.use_classification,
-        logs=logs,
     )
     run_store.save(run)
     return run

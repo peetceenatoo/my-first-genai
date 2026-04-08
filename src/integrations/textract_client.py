@@ -9,10 +9,6 @@ from botocore.exceptions import NoCredentialsError
 from PIL import Image
 
 from src.config import load_config
-from src.logging import get_logger, log_ocr_text
-
-
-logger = get_logger(__name__)
 
 
 def _image_to_bytes(image: Image.Image) -> bytes:
@@ -121,7 +117,6 @@ def detect_text(image: Image.Image) -> str:
                 return ""
 
             ocr_text = _extract_text_from_analyze(blocks)
-            log_ocr_text(ocr_text)
             return ocr_text
         except NoCredentialsError as exc:
             raise RuntimeError(
@@ -130,17 +125,8 @@ def detect_text(image: Image.Image) -> str:
                 "or provide AWS_PROFILE with mounted ~/.aws credentials. "
                 "If running in Docker, mount ~/.aws into the container."
             ) from exc
-        except Exception as exc:
-            logger.warning(
-                "Textract AnalyzeDocument failed (attempt %s/%s): %s. Retrying...",
-                attempt + 1,
-                attempts,
-                exc,
-            )
+        except Exception:
             if attempt >= config.max_retries:
-                logger.warning(
-                    "AnalyzeDocument exhausted retries. Falling back to DetectDocumentText."
-                )
                 # Fallback: use DetectDocumentText
                 try:
                     response = client.detect_document_text(
@@ -150,13 +136,8 @@ def detect_text(image: Image.Image) -> str:
                     if not isinstance(blocks, list):
                         return ""
                     ocr_text = _extract_lines(blocks)
-                    log_ocr_text(ocr_text)
                     return ocr_text
-                except Exception as fallback_exc:
-                    logger.error(
-                        "Textract fallback (DetectDocumentText) also failed: %s",
-                        fallback_exc,
-                    )
+                except Exception:
                     raise
             time.sleep(config.retry_backoff_s * (attempt + 1))
 

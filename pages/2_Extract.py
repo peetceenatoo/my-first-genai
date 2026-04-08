@@ -12,7 +12,6 @@ from src.integrations.preprocess import preprocess
 from src.pipeline.classification import DEFAULT_CLASSIFIER_PROMPT
 from src.pipeline.extraction import DEFAULT_EXTRACTION_PROMPT
 from src.pipeline.runner import PipelineOptions, run_pipeline
-from src.logging import setup_logging
 from src.ui.components import (
     inject_branding,
     inject_global_styles,
@@ -22,7 +21,6 @@ from src.ui.components import (
 
 
 config = load_config()
-setup_logging()
 store = SchemaStore(config.schemas_path)
 run_store = RunStore(config.run_store_dir)
 

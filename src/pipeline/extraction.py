@@ -11,23 +11,6 @@ from PIL import Image
 from src.config import load_config
 from src.domain.models import SchemaField
 from src.integrations.bedrock_client import get_chat_completion
-from src.logging import (
-    get_logger,
-    log_ocr_available,
-    log_ocr_missing,
-    log_extraction_response,
-    log_extraction_payload,
-    log_extraction_metadata,
-    log_field_matched_exactly,
-    log_field_matched_normalized,
-    log_field_not_found,
-    log_extraction_summary,
-    log_extraction_empty_payload,
-    log_extraction_payload_invalid_type,
-)
-
-
-logger = get_logger(__name__)
 
 
 DEFAULT_EXTRACTION_PROMPT = """Estrai metadati strutturati dai documenti.
@@ -68,7 +51,6 @@ def _norm_key(value: str) -> str:
 def _align_metadata(payload: dict[str, Any], fields: list[SchemaField]) -> dict[str, Any]:
     candidate = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else payload
     if not isinstance(candidate, dict):
-        log_extraction_payload_invalid_type(type(candidate).__name__)
         return {}
 
     normalized_map: dict[str, Any] = {}
@@ -80,20 +62,13 @@ def _align_metadata(payload: dict[str, Any], fields: list[SchemaField]) -> dict[
     for field in fields:
         if field.name in candidate:
             aligned[field.name] = candidate[field.name]
-            log_field_matched_exactly(field.name)
             continue
 
         matched = normalized_map.get(_norm_key(field.name), "")
         if matched:
             aligned[field.name] = matched
-            original_key = next(
-                (k for k in candidate.keys() if _norm_key(k) == _norm_key(field.name)),
-                "unknown",
-            )
-            log_field_matched_normalized(field.name, original_key)
         else:
             aligned[field.name] = ""
-            log_field_not_found(field.name)
 
     return aligned
 
@@ -130,10 +105,7 @@ def extract_metadata(
         field_lines,
     ]
     if ocr_text:
-        log_ocr_available(len(ocr_text))
         parts.extend(("Testo OCR:", ocr_text))
-    else:
-        log_ocr_missing()
 
     content = [{"type": "text", "text": "\n".join(parts)}]
     
@@ -150,18 +122,9 @@ def extract_metadata(
     ]
 
     response = get_chat_completion(messages, model=config.extract_model)
-    log_extraction_response(response)
 
     payload = _safe_json(response)
-    log_extraction_payload(payload)
 
     metadata = _align_metadata(payload, fields)
-    log_extraction_metadata(metadata)
-
-    if not metadata:
-        log_extraction_empty_payload()
-    else:
-        filled_fields = sum(1 for v in metadata.values() if str(v).strip())
-        log_extraction_summary(filled_fields, len(metadata))
 
     return {"metadata": metadata, "confidence": {}}

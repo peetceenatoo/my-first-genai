@@ -9,10 +9,6 @@ from botocore.exceptions import NoCredentialsError
 from botocore.config import Config as BotoConfig
 
 from src.config import load_config
-from src.logging import get_logger
-
-
-logger = get_logger(__name__)
 
 
 def _decode_image_block(image_url: str) -> dict[str, Any]:
@@ -130,13 +126,7 @@ def get_chat_completion(
                 "or provide AWS_PROFILE with mounted ~/.aws credentials. "
                 "If running in Docker, mount ~/.aws into the container."
             ) from exc
-        except Exception as exc:
-            logger.warning(
-                "Bedrock request failed (attempt %s/%s): %s",
-                attempt + 1,
-                attempts,
-                exc,
-            )
+        except Exception:
             if attempt >= config.max_retries:
                 raise
             time.sleep(config.retry_backoff_s * (attempt + 1))

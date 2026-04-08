@@ -11,11 +11,9 @@ from src.ui.components import (
     section_spacer,
     section_title,
 )
-from src.logging import setup_logging
 
 
 config = load_config()
-setup_logging()
 
 st.set_page_config(page_title="Settings", page_icon="⚙️", layout="wide")
 

@@ -31,7 +31,6 @@ class ExtractionRun:
     documents: list[RunDocument]
     use_classification: bool = False
     status: str = "completed"
-    logs: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -40,7 +39,6 @@ class ExtractionRun:
             "schema_name": self.schema_name,
             "use_classification": self.use_classification,
             "status": self.status,
-            "logs": self.logs,
             "documents": [
                 {
                     "filename": doc.filename,
