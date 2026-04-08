@@ -13,14 +13,14 @@ from src.domain.models import SchemaField
 from src.integrations.bedrock_client import get_chat_completion
 
 
-DEFAULT_EXTRACTION_PROMPT = """You extract structured metadata from documents.
-Return JSON only (no markdown, no commentary).
-Rules:
-- Keys must exactly match the provided field names.
-- Use empty string when a value is missing or unreadable.
-- Preserve the document's wording, casing, punctuation, and units.
-- Do not infer or fabricate values not present in the document.
-- Values may appear without any label in the image: look for the value itself, not just the label.
+DEFAULT_EXTRACTION_PROMPT = """Estrai metadati strutturati dai documenti.
+Restituisci solo JSON (niente markdown, nessun commento).
+Regole:
+- Le chiavi devono corrispondere esattamente ai nomi dei campi forniti.
+- Usa una stringa vuota quando un valore manca o non è leggibile.
+- Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento.
+- Non inferire né inventare valori non presenti nel documento.
+- I valori possono comparire senza etichetta nell'immagine: cerca il valore stesso in base al suo significato, non solo l'etichetta.
 """
 
 
@@ -65,15 +65,17 @@ def extract_metadata(
     prompt = system_prompt or DEFAULT_EXTRACTION_PROMPT
 
     field_lines = "\n".join(_render_field(field) for field in fields)
-    instructions = "Return a JSON object with keys exactly matching the field names."
+    instructions = (
+        "Restituisci un oggetto JSON con chiavi che corrispondono esattamente ai nomi dei campi."
+    )
 
     parts = [
         instructions,
-        "Fields:",
+        "Campi:",
         field_lines,
     ]
     if ocr_text:
-        parts.extend(("OCR text:", ocr_text))
+        parts.extend(("Testo OCR:", ocr_text))
     content = [{"type": "text", "text": "\n".join(parts)}]
     for image in images or []:
         content.append(

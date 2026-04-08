@@ -10,9 +10,9 @@ from src.integrations.bedrock_client import get_chat_completion
 
 
 DEFAULT_OCR_PROMPT = """
-You are an OCR engine. Transcribe all readable text in natural reading order.
-Preserve line breaks and spacing where useful.
-Return plain text only without commentary.
+Sei un motore OCR. Trascrivi tutto il testo leggibile nel naturale ordine di lettura.
+Mantieni le interruzioni di riga e gli spazi quando utile.
+Restituisci solo testo semplice, senza commenti.
 """
 
 
@@ -32,7 +32,7 @@ def run_ocr(images: list[Image.Image]) -> str:
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "Extract all text."},
+                    {"type": "text", "text": "Estrai tutto il testo."},
                     {
                         "type": "image_url",
                         "image_url": {"url": _image_to_data_uri(image)},

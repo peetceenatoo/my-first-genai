@@ -15,10 +15,10 @@ from src.logging import get_logger
 logger = get_logger(__name__)
 
 
-DEFAULT_CLASSIFIER_PROMPT = """You are a strict document classifier.
-Choose exactly one label from the provided list based on layout, visual cues, and text.
-If nothing fits, return "Unknown".
-Return only the label string with no extra words or punctuation.
+DEFAULT_CLASSIFIER_PROMPT = """Sei un classificatore di documenti rigoroso.
+Scegli esattamente un'etichetta dalla lista fornita in base a layout, indizi visivi e testo.
+Se nulla corrisponde, restituisci "Unknown".
+Restituisci solo la stringa dell'etichetta, senza parole aggiuntive o punteggiatura.
 """
 
 
@@ -44,14 +44,16 @@ def classify_document(
         content = [
             {
                 "type": "text",
-                "text": f"Choose one type from: {candidates}.",
+                "text": f"Scegli un solo tipo tra: {candidates}.",
             }
         ]
         if text:
             text_snippet = text.strip()
             if len(text_snippet) > 4000:
                 text_snippet = text_snippet[:4000]
-            content.append({"type": "text", "text": f"Document text:\n{text_snippet}"})
+            content.append(
+                {"type": "text", "text": f"Testo del documento:\n{text_snippet}"}
+            )
         for image in images or []:
             content.append(
                 {
