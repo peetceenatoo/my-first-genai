@@ -28,8 +28,8 @@ class ExtractionRun:
     run_id: str
     started_at: str
     schema_name: str
-    mode: str
     documents: list[RunDocument]
+    use_classification: bool = False
     status: str = "completed"
     logs: list[str] = field(default_factory=list)
 
@@ -38,7 +38,7 @@ class ExtractionRun:
             "run_id": self.run_id,
             "started_at": self.started_at,
             "schema_name": self.schema_name,
-            "mode": self.mode,
+            "use_classification": self.use_classification,
             "status": self.status,
             "logs": self.logs,
             "documents": [
@@ -94,10 +94,3 @@ class RunStore:
             return None
         with run_path.open("r", encoding="utf-8") as fp:
             return json.load(fp)
-
-    def update_run(self, run_id: str, payload: dict[str, Any]) -> Path:
-        run_path = self.base_dir / run_id / "run.json"
-        run_path.parent.mkdir(parents=True, exist_ok=True)
-        with run_path.open("w", encoding="utf-8") as fp:
-            json.dump(payload, fp, indent=2, ensure_ascii=False)
-        return run_path

@@ -130,6 +130,62 @@ def inject_global_styles() -> None:
             margin: 1rem 0 0.4rem;
             color: rgba(226, 232, 240, 0.85);
         }
+        .extractly-classification-card {
+            margin: 0.75rem 0 1rem;
+            padding: 1rem 1.1rem;
+            border-radius: 16px;
+            border: 1px solid var(--extractly-border);
+            background: var(--extractly-card);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        }
+        .extractly-classification-card.is-warning {
+            border-color: rgba(251, 191, 36, 0.55);
+            background: linear-gradient(
+                135deg,
+                rgba(245, 158, 11, 0.16),
+                rgba(15, 23, 42, 0.04)
+            );
+        }
+        .extractly-classification-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid var(--extractly-border);
+            background: rgba(15, 23, 42, 0.18);
+            color: rgba(236, 254, 255, 0.95);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .extractly-classification-label {
+            margin-top: 0.65rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(148, 163, 184, 0.85);
+        }
+        .extractly-classification-value {
+            margin-top: 0.35rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: rgba(236, 254, 255, 0.98);
+            word-break: break-word;
+        }
+        .extractly-classification-meta {
+            margin-top: 0.4rem;
+            font-size: 0.9rem;
+            color: rgba(226, 232, 240, 0.82);
+        }
+        .extractly-classification-status {
+            margin-top: 0.4rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: rgba(236, 254, 255, 0.95);
+        }
         .extractly-spacer {
             height: 1.5rem;
         }

@@ -24,6 +24,7 @@ logger = get_logger(__name__)
 class PipelineOptions:
     enable_ocr: bool = False
     compute_confidence: bool = False
+    use_classification: bool = False
     classifier_prompt: str | None = None
     extraction_prompt: str | None = None
 
@@ -110,13 +111,7 @@ def run_pipeline(
         if ocr_text is None and options.enable_ocr:
             ocr_text = run_ocr(images)
 
-        doc_type_override = payload.get("doc_type_override")
-        if doc_type_override:
-            doc_type = doc_type_override
-            confidence = None
-            logs.append(f"Using provided document type for {filename}: {doc_type}")
-            report_progress(f"Assigning schema {idx}/{total_docs} • {filename}")
-        else:
+        if options.use_classification:
             report_progress(f"Classifying {idx}/{total_docs} • {filename}")
             classification = classify_document(
                 images_for_llm,
@@ -129,6 +124,11 @@ def run_pipeline(
             doc_type = classification.get("doc_type", "Unknown")
             confidence = classification.get("confidence")
             logs.append(f"Classified {filename} as {doc_type}")
+        else:
+            doc_type = default_schema.name if default_schema else "Unknown"
+            confidence = None
+            logs.append(f"Using selected schema for {filename}: {doc_type}")
+            report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
 
         warnings: list[str] = []
         errors: list[str] = []
@@ -139,11 +139,9 @@ def run_pipeline(
             warnings.append("Document type is unknown. Extraction skipped.")
             report_progress(f"Skipping extraction {idx}/{total_docs} • {filename}")
         else:
-            schema_for_doc = None
-            if doc_type_override:
+            schema_for_doc = default_schema
+            if options.use_classification:
                 schema_for_doc = schema_map.get(doc_type, default_schema)
-            else:
-                schema_for_doc = schema_map.get(doc_type)
             if not schema_for_doc:
                 warnings.append("No matching schema found. Extraction skipped.")
                 report_progress(f"No schema match {idx}/{total_docs} • {filename}")
@@ -205,8 +203,8 @@ def run_pipeline(
             if schema_name is not None
             else (default_schema.name if default_schema else "Classified")
         ),
-        mode="Accurate",
         documents=documents,
+        use_classification=options.use_classification,
         logs=logs,
     )
     run_store.save(run)

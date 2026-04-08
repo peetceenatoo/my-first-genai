@@ -4,7 +4,7 @@ import base64
 import csv
 import io
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 import html
 from pathlib import Path
 import streamlit as st
@@ -18,7 +18,6 @@ from src.ui.components import (
     section_spacer,
     section_title,
 )
-from utils.utils import diff_fields, upsert_feedback
 
 
 config = load_config()
@@ -56,6 +55,38 @@ if not documents:
     st.info("This run has no documents to display.")
     st.stop()
 
+use_classification = run.get("use_classification")
+if use_classification is None:
+    # Backward compatibility for runs created before the flag was persisted.
+    use_classification = any(
+        isinstance(doc.get("confidence"), (int, float)) for doc in documents
+    )
+
+classification_label = "ON" if use_classification else "OFF"
+
+
+def _normalize_key(value: str) -> str:
+    return " ".join(str(value).strip().lower().split())
+
+
+def _is_holder_photograph_field(field_name: str) -> bool:
+    return _normalize_key(field_name) in {
+        "holder photograph",
+        "holder_photo",
+        "holder photo",
+    }
+
+
+def _holder_photograph_label(value: object) -> str:
+    if isinstance(value, bool):
+        return "Presente" if value else "Non presente"
+    normalized = _normalize_key(str(value))
+    if normalized in {"1", "true", "yes", "y", "presente", "present"}:
+        return "Presente"
+    if normalized in {"0", "false", "no", "n", "non presente", "absent"}:
+        return "Non presente"
+    return "Presente" if normalized else "Non presente"
+
 section_spacer("lg")
 section_title("Run summary")
 started_at_label = "—"
@@ -84,8 +115,8 @@ st.markdown(
             <div class="extractly-meta-value">{len(documents)}</div>
         </div>
         <div class="extractly-meta-card">
-            <div class="extractly-meta-label">Mode</div>
-            <div class="extractly-meta-value">{html.escape(str(run.get("mode", "—")))}</div>
+            <div class="extractly-meta-label">Classify</div>
+            <div class="extractly-meta-value">{classification_label}</div>
         </div>
     </div>
     """,
@@ -95,11 +126,15 @@ st.markdown(
 section_spacer("lg")
 
 section_title("Documents")
+if use_classification:
+    st.caption("Classification enabled for this run.")
+else:
+    st.caption("Classification disabled for this run.")
 review_threshold = st.slider(
     "Needs review threshold",
     min_value=0.0,
     max_value=1.0,
-    value=0.6,
+    value=0.00,
     step=0.05,
     help="Flags documents with low classification or field confidence.",
 )
@@ -112,7 +147,6 @@ doc_rows.extend(
             "document_type": (
                 doc.get("document_type_corrected") or doc.get("document_type") or "—"
             ),
-            "class_confidence": doc.get("confidence"),
             "review": "",
             "warnings": len(doc.get("warnings", [])),
             "errors": len(doc.get("errors", [])),
@@ -129,7 +163,7 @@ for row, doc in zip(doc_rows, documents):
     class_conf = doc.get("confidence")
     if isinstance(class_conf, (int, float)) and class_conf < review_threshold:
         needs_review = True
-    row["review"] = "⚠️ Needs review" if needs_review else ""
+    row["review"] = "⚠️ Needs review" if needs_review else "No review needed"
 
 if only_needs_review:
     doc_rows = [row for row in doc_rows if row.get("review")]
@@ -139,7 +173,6 @@ st.dataframe(
     column_config={
         "filename": st.column_config.TextColumn("File", width="medium"),
         "document_type": st.column_config.TextColumn("Schema", width="small"),
-        "class_confidence": st.column_config.NumberColumn("Class conf", width="small"),
         "review": st.column_config.TextColumn("Review", width="small"),
         "warnings": st.column_config.NumberColumn("Warnings", width="small"),
         "errors": st.column_config.NumberColumn("Errors", width="small"),
@@ -179,16 +212,15 @@ if selected_doc:
         or selected_doc.get("document_type")
         or ""
     )
-    class_confidence = selected_doc.get("confidence")
-    class_conf_label = (
-        f"{class_confidence:.2f}" if isinstance(class_confidence, (int, float)) else "—"
-    )
 
     st.markdown(
         "<div class='extractly-detail-subtitle'>Classification</div>",
         unsafe_allow_html=True,
     )
-    st.caption(f"Confidence: {class_conf_label}")
+    if use_classification:
+        st.caption("Classification enabled for this run.")
+    else:
+        st.caption("Not enabled for this run.")
     original_type = selected_doc.get("document_type_original") or selected_doc.get(
         "document_type"
     )
@@ -199,6 +231,42 @@ if selected_doc:
         "extracted", {}
     )
     field_confidence = selected_doc.get("field_confidence", {}) or {}
+    class_confidence = selected_doc.get("confidence")
+
+    if use_classification:
+        classification_label = (
+            f"{class_confidence:.2f}"
+            if isinstance(class_confidence, (int, float))
+            else "—"
+        )
+        classification_needs_review = isinstance(class_confidence, (int, float)) and (
+            class_confidence < review_threshold
+        )
+        classification_card_class = (
+            "extractly-classification-card is-warning"
+            if classification_needs_review
+            else "extractly-classification-card"
+        )
+        classification_status = (
+            "<div class='extractly-classification-status'>Review recommended</div>"
+            if classification_needs_review
+            else ""
+        )
+        st.markdown(
+            f"""
+            <div class='{classification_card_class}'>
+                <div class='extractly-classification-badge'>System field</div>
+                <div class='extractly-classification-label'>Classified schema</div>
+                <div class='extractly-classification-value'>{html.escape(str(doc_type_current or '—'))}</div>
+                <div class='extractly-classification-meta'>
+                    Confidence: {html.escape(classification_label or '—')}
+                </div>
+                {classification_status}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
     low_conf_fields = [
         field
         for field, value in field_confidence.items()
@@ -209,6 +277,11 @@ if selected_doc:
 
     field_rows = []
     for key, value in corrected_payload.items():
+        display_value = (
+            _holder_photograph_label(value)
+            if _is_holder_photograph_field(key)
+            else value
+        )
         confidence_value = field_confidence.get(key, "")
         status_label = ""
         if (
@@ -219,80 +292,29 @@ if selected_doc:
         field_rows.append(
             {
                 "field": key,
-                "value": value,
+                "value": display_value,
                 "confidence": confidence_value,
                 "status": status_label,
             }
         )
 
-    with st.form(key=f"doc_corrections_{selected_doc_name}"):
-        doc_type_input = st.text_input("Document type", value=doc_type_current)
-        st.markdown(
-            "<div class='extractly-detail-subtitle'>Extracted fields</div>",
-            unsafe_allow_html=True,
-        )
-        edited_fields = st.data_editor(
-            field_rows,
-            num_rows="fixed",
-            width="stretch",
-            column_config={
-                "field": st.column_config.TextColumn("Field", width="small"),
-                "value": st.column_config.TextColumn("Value", width="large"),
-                "confidence": st.column_config.NumberColumn(
-                    "Confidence", width="small"
-                ),
-                "status": st.column_config.TextColumn("Flag", width="small"),
-            },
-            disabled=["field", "confidence", "status"],
-            key=f"field_editor_{selected_doc_name}",
-        )
-        submitted = st.form_submit_button("Save corrections")
-
-    if submitted:
-        if hasattr(edited_fields, "to_dict"):
-            edited_rows = edited_fields.to_dict("records")
-        elif isinstance(edited_fields, dict):
-            values = list(edited_fields.values())
-            row_count = len(values[0]) if values else 0
-            edited_rows = [
-                {column: edited_fields[column][idx] for column in edited_fields}
-                for idx in range(row_count)
-            ]
-        else:
-            edited_rows = edited_fields or []
-
-        corrected_map = {
-            row.get("field"): row.get("value")
-            for row in edited_rows
-            if row.get("field")
-        }
-
-        original_extracted = selected_doc.get("extracted", {})
-        selected_doc["document_type_original"] = selected_doc.get(
-            "document_type_original", selected_doc.get("document_type")
-        )
-        selected_doc["document_type_corrected"] = (
-            doc_type_input.strip() or selected_doc["document_type_original"]
-        )
-        selected_doc["document_type"] = selected_doc["document_type_corrected"]
-        selected_doc["corrected"] = corrected_map
-        run_store.update_run(selected_id, run)
-
-        feedback_row = {
-            "doc_id": f"{selected_id}:{selected_doc.get('filename')}",
-            "run_id": selected_id,
-            "filename": selected_doc.get("filename"),
-            "schema_name": run.get("schema_name"),
-            "document_type_original": selected_doc.get("document_type_original"),
-            "document_type_corrected": selected_doc.get("document_type_corrected"),
-            "extracted": original_extracted,
-            "corrected": corrected_map,
-            "changed_fields": diff_fields(original_extracted, corrected_map),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        upsert_feedback(feedback_row)
-        st.success("Corrections saved.")
-        st.rerun()
+    st.markdown(
+        "<div class='extractly-detail-subtitle'>Extracted fields</div>",
+        unsafe_allow_html=True,
+    )
+    st.data_editor(
+        field_rows,
+        num_rows="fixed",
+        width="stretch",
+        column_config={
+            "field": st.column_config.TextColumn("Field", width="small"),
+            "value": st.column_config.TextColumn("Value", width="large"),
+            "confidence": st.column_config.NumberColumn("Confidence", width="small"),
+            "status": st.column_config.TextColumn("Flag", width="small"),
+        },
+        disabled=["field", "value", "confidence", "status"],
+        key=f"field_editor_{selected_doc_name}",
+    )
 
     if selected_doc.get("warnings"):
         st.warning("\n".join(selected_doc.get("warnings")))
