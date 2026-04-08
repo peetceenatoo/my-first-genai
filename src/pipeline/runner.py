@@ -40,7 +40,7 @@ def run_pipeline(
     documents: list[RunDocument] = []
 
     max_pages = None
-    vote_runs = 3 if not options.compute_confidence else 7
+    vote_runs = 7
     class_votes = 3 # if options.use_classification... else 0
 
     total_docs = len(files)
@@ -61,16 +61,32 @@ def run_pipeline(
             return json.dumps(value, sort_keys=True, ensure_ascii=False)
         return str(value)
 
+    def has_meaningful_value(value: Any) -> bool:
+        if value is None:
+            return False
+        if isinstance(value, bool):
+            return True
+        if isinstance(value, (int, float)):
+            return True
+        if isinstance(value, str):
+            return bool(value.strip())
+        if isinstance(value, (list, dict)):
+            return len(value) > 0
+        return bool(str(value).strip())
+
     def aggregate_votes(
         votes: list[dict[str, Any]], field_names: list[str]
     ) -> tuple[dict[str, Any], dict[str, float | None]]:
         merged: dict[str, Any] = {}
         confidences: dict[str, float | None] = {}
+        total_votes = max(len(votes), 1)
         for field_name in field_names:
             counts: dict[str, int] = {}
             samples: dict[str, Any] = {}
             for vote in votes:
                 value = vote.get(field_name, "")
+                if not has_meaningful_value(value):
+                    continue
                 key = canonicalize(value)
                 counts[key] = counts.get(key, 0) + 1
                 if key not in samples:
@@ -79,16 +95,14 @@ def run_pipeline(
                 merged[field_name] = ""
                 confidences[field_name] = None
                 continue
-            best = max(
-                counts,
-                key=lambda k: (counts[k], 1 if str(k).strip() else 0),
-            )
+
+            best = max(counts, key=lambda k: counts[k])
             best_value = samples.get(best, "")
             merged[field_name] = best_value
             if best_value is None or not str(best_value).strip():
                 confidences[field_name] = None
             else:
-                confidences[field_name] = counts[best] / max(len(votes), 1)
+                confidences[field_name] = counts[best] / total_votes
         return merged, confidences
 
     def encode_preview(images: list[Image.Image]) -> str | None:
@@ -153,7 +167,8 @@ def run_pipeline(
                                 ocr_text=ocr_text,
                                 system_prompt=options.extraction_prompt,
                             )
-                            votes.append(extraction.get("metadata", {}))
+                            vote_payload = extraction.get("metadata", {})
+                            votes.append(vote_payload)
                         field_names = [field.name for field in schema_for_doc.fields]
                         extracted, field_confidence = aggregate_votes(
                             votes, field_names

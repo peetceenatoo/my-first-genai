@@ -14,12 +14,18 @@ from src.integrations.bedrock_client import get_chat_completion
 
 
 DEFAULT_EXTRACTION_PROMPT = """Estrai metadati strutturati dai documenti.
-Restituisci solo JSON (niente markdown, nessun commento).
-Regole:
-- Le chiavi nel JSON devono essere SOLO il nome del campo, senza tipo né (required). Es: "Targa", NON "Targa (string, required)".
-- Le chiavi devono corrispondere esattamente ai nomi dei campi forniti.
+Restituisci SOLO JSON valido (niente markdown, nessun commento, nessun testo extra).
+
+REGOLE CRITICHE DI FORMATTAZIONE JSON:
+- Stringhe (type=string, date): SEMPRE racchiuse tra virgolette. Ad esempio "Targa": "AA00000" e "Data": "31.07.2002"
+- Numeri (type=number, integer): è fondamentale che contengano SOLO cifre da 0 a 9, SENZA nessun altro tipo di carattere come virgole, lettere o slash. Ad esempio "Massa": 1985 va bene. Qualora un numero contenga caratteri non numerici (ad esempio "11P2" o "1,385"), deve essere trattato come stringa e quindi racchiuso tra virgolette, come "11P2", "1,385" o "1/2".
+- Stringhe vuote: "" (due virgolette, non null)
+
+REGOLE DI ESTRAZIONE:
+- Le chiavi nel JSON devono essere SOLO il nome del campo, senza tipo né (required).
+- Le chiavi devono corrispondere esattamente ai nomi dei campi forniti nello schema.
 - Usa una stringa vuota quando un valore manca o non è leggibile.
-- Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento.
+- Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore, non nella struttura JSON.
 - Non inferire né inventare valori non presenti nel documento.
 - I valori possono comparire senza etichetta nell'immagine: cerca il valore stesso in base al suo significato, non solo l'etichetta.
 """
@@ -32,45 +38,24 @@ def _image_to_data_uri(image: Image.Image) -> str:
 
 
 def _safe_json(text: str) -> dict[str, Any]:
+    candidate = text.strip()
+    fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", candidate, re.S | re.I)
+    if fenced:
+        candidate = fenced.group(1).strip()
+
     try:
-        return json.loads(text)
+        parsed = json.loads(candidate)
     except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", text, re.S)
-        if match:
-            try:
-                return json.loads(match[0])
-            except json.JSONDecodeError:
-                return {}
-    return {}
+        return {}
 
-
-def _norm_key(value: str) -> str:
-    return re.sub(r"[^a-z0-9]", "", value.lower())
+    return parsed if isinstance(parsed, dict) else {}
 
 
 def _align_metadata(payload: dict[str, Any], fields: list[SchemaField]) -> dict[str, Any]:
-    candidate = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else payload
-    if not isinstance(candidate, dict):
+    if not isinstance(payload, dict):
         return {}
 
-    normalized_map: dict[str, Any] = {}
-    for key, value in candidate.items():
-        if isinstance(key, str):
-            normalized_map[_norm_key(key)] = value
-
-    aligned: dict[str, Any] = {}
-    for field in fields:
-        if field.name in candidate:
-            aligned[field.name] = candidate[field.name]
-            continue
-
-        matched = normalized_map.get(_norm_key(field.name), "")
-        if matched:
-            aligned[field.name] = matched
-        else:
-            aligned[field.name] = ""
-
-    return aligned
+    return {field.name: payload.get(field.name, "") for field in fields}
 
 
 def _render_field(field: SchemaField) -> str:
