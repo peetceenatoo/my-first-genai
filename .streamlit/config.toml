@@ -16,3 +16,4 @@ gatherUsageStats = false
 [theme]
 base = "dark"
 font = "sans serif"
+primaryColor = "#3766db"

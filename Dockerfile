@@ -12,6 +12,7 @@ COPY pages ./pages
 COPY utils ./utils
 COPY schemas ./schemas
 COPY data ./data
+COPY .streamlit ./.streamlit
 COPY Home.py ./
 
 RUN pip install --no-cache-dir .
