@@ -18,7 +18,7 @@ class RunDocument:
     document_type_original: str | None = None
     document_type_corrected: str | None = None
     preview_image: str | None = None
-    field_confidence: dict[str, float] = field(default_factory=dict)
+    field_confidence: dict[str, float | None] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 

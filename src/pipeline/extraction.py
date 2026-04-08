@@ -44,7 +44,11 @@ def _safe_json(text: str) -> dict[str, Any]:
 
 def _render_field(field: SchemaField) -> str:
     required = "required" if field.required else "optional"
-    enum_hint = f" enum: {', '.join(field.enum_values)}" if field.enum_values else ""
+    enum_hint = (
+        f" enum: {', '.join(str(value) for value in field.enum_values)}"
+        if field.enum_values
+        else ""
+    )
     description = f" - {field.description}" if field.description else ""
     return f"- {field.name} ({field.field_type}, {required}){enum_hint}{description}"
 

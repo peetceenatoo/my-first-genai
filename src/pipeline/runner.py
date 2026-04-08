@@ -45,8 +45,8 @@ def run_pipeline(
     documents: list[RunDocument] = []
 
     max_pages = None
-    vote_runs = 5 if options.compute_confidence else 3
-    class_votes = 5
+    vote_runs = 3 if not options.compute_confidence else 7
+    class_votes = 3 # if options.use_classification... else 0
 
     total_docs = len(files)
     total_steps = max(total_docs * 2, 1)
@@ -68,9 +68,9 @@ def run_pipeline(
 
     def aggregate_votes(
         votes: list[dict[str, Any]], field_names: list[str]
-    ) -> tuple[dict[str, Any], dict[str, float]]:
+    ) -> tuple[dict[str, Any], dict[str, float | None]]:
         merged: dict[str, Any] = {}
-        confidences: dict[str, float] = {}
+        confidences: dict[str, float | None] = {}
         for field_name in field_names:
             counts: dict[str, int] = {}
             samples: dict[str, Any] = {}
@@ -82,14 +82,18 @@ def run_pipeline(
                     samples[key] = value
             if not counts:
                 merged[field_name] = ""
-                confidences[field_name] = 0.0
+                confidences[field_name] = None
                 continue
             best = max(
                 counts,
                 key=lambda k: (counts[k], 1 if str(k).strip() else 0),
             )
-            merged[field_name] = samples.get(best, "")
-            confidences[field_name] = counts[best] / max(len(votes), 1)
+            best_value = samples.get(best, "")
+            merged[field_name] = best_value
+            if best_value is None or not str(best_value).strip():
+                confidences[field_name] = None
+            else:
+                confidences[field_name] = counts[best] / max(len(votes), 1)
         return merged, confidences
 
     def encode_preview(images: list[Image.Image]) -> str | None:
@@ -133,7 +137,7 @@ def run_pipeline(
         warnings: list[str] = []
         errors: list[str] = []
         extracted: dict[str, Any] = {}
-        field_confidence: dict[str, float] = {}
+        field_confidence: dict[str, float | None] = {}
 
         if doc_type in {"Unknown", "Other"}:
             warnings.append("Document type is unknown. Extraction skipped.")
