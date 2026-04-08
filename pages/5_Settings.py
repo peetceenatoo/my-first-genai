@@ -43,14 +43,3 @@ section_title("📁 Directories")
 st.write(f"Prebuilt schemas: `{config.prebuilt_schemas_path}`")
 st.write(f"Custom schemas: `{config.custom_schemas_path}`")
 st.write(f"Runs: `{config.run_store_dir}`")
-
-section_spacer("lg")
-section_title("📝 Notes")
-st.info(
-    "AWS credentials are resolved from the shared credentials/profile files (for example "
-    "`~/.aws/credentials` and `~/.aws/config`) or from an IAM role. "
-    "Run `streamlit run Home.py` after changing settings.",
-    icon="📝",
-)
-
-st.caption(f"Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
