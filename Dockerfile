@@ -1,21 +1,21 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-ENV PYTHONPATH=/app
+ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml README.md ./
-COPY src ./src
-COPY pages ./pages
-COPY schemas ./schemas
-COPY data ./data
-COPY .streamlit ./.streamlit
-COPY Home.py ./
+# Copia il progetto
+COPY pyproject.toml README.md Home.py ./
+COPY src pages schemas data .streamlit ./
 
+# Installa il package principale
 RUN pip install --no-cache-dir .
+
+# Assicura permessi per Streamlit
+RUN mkdir -p /app/.streamlit && chmod -R 777 /app/.streamlit
 
 EXPOSE 8501
 
