@@ -3,16 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 import streamlit as st
 
-from src.config import load_config
 from src.ui.components import (
     inject_branding,
     inject_global_styles,
     section_spacer,
     section_title,
 )
-
-
-config = load_config()
 
 st.set_page_config(page_title="Extractly", page_icon="✨", layout="wide")
 

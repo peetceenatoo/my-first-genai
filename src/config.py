@@ -10,11 +10,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 @dataclass(frozen=True)
 class AppConfig:
-    app_name: str
     aws_region: str
     classify_model: str
     extract_model: str
-    ocr_provider: str
     max_output_tokens: int
     request_timeout_s: int
     max_retries: int
@@ -31,11 +29,9 @@ def load_config() -> AppConfig:
     )
 
     return AppConfig(
-        app_name=os.getenv("EXTRACTLY_APP_NAME", "Extractly"),
         aws_region=aws_region,
         classify_model=os.getenv("CLASSIFY_MODEL", "amazon.nova-lite-v1:0"),
         extract_model=os.getenv("EXTRACT_MODEL", "amazon.nova-lite-v1:0"),
-        ocr_provider=os.getenv("OCR_PROVIDER", "textract"),
         max_output_tokens=int(os.getenv("EXTRACTLY_MAX_TOKENS", "4096")),
         request_timeout_s=int(os.getenv("EXTRACTLY_TIMEOUT_S", "40")),
         max_retries=int(os.getenv("EXTRACTLY_MAX_RETRIES", "2")),

@@ -19,7 +19,13 @@ streamlit run Home.py
 To run with docker:
 
 1. Configure AWS credentials with `aws configure` (this writes `~/.aws/credentials` and `~/.aws/config`).
-2. Run the app:
+2. Build the image:
+
+```bash
+docker build -t extractly:latest .
+```
+
+3. Run the app:
 
 ```bash
 docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest

@@ -24,7 +24,6 @@ repos:
       - id: debug-statements           # Remove debug statements (e.g., pdb)
       - id: end-of-file-fixer          # Ensure newline at EOF
       - id: trailing-whitespace        # Remove trailing whitespaces
-      - id: requirements-txt-fixer     # Fix requirements.txt formatting
 
   # Detect secrets in code
   - repo: https://github.com/Yelp/detect-secrets
@@ -45,7 +44,6 @@ repos:
       - id: python-check-mock-methods       # Catch incorrect use of mock methods
       - id: python-use-type-annotations     # Enforce type annotations
       - id: python-check-blanket-noqa       # Avoid overuse of noqa
-      - id: python-use-type-annotations     # Enforce type annotations
       - id: text-unicode-replacement-char   # Detect unicode replacement chars
 
   # # Validate and sort YAML files

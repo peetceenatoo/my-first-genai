@@ -6,10 +6,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml uv.lock README.md ./
+COPY pyproject.toml README.md ./
 COPY src ./src
 COPY pages ./pages
-COPY utils ./utils
 COPY schemas ./schemas
 COPY data ./data
 COPY .streamlit ./.streamlit
