@@ -53,15 +53,6 @@ if not documents:
     st.info("This run has no documents to display.")
     st.stop()
 
-use_classification = run.get("use_classification")
-if use_classification is None:
-    # Backward compatibility for runs created before the flag was persisted.
-    use_classification = any(
-        isinstance(doc.get("confidence"), (int, float)) for doc in documents
-    )
-
-classification_label = "ON" if use_classification else "OFF"
-
 
 def _boolean_presence_label(value: object) -> str:
     if isinstance(value, bool):
@@ -95,10 +86,6 @@ st.markdown(
             <div class="extractly-meta-label">Documents</div>
             <div class="extractly-meta-value">{len(documents)}</div>
         </div>
-        <div class="extractly-meta-card">
-            <div class="extractly-meta-label">Classify</div>
-            <div class="extractly-meta-value">{classification_label}</div>
-        </div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -107,17 +94,13 @@ st.markdown(
 section_spacer("lg")
 
 section_title("Documents")
-if use_classification:
-    st.caption("Classification enabled for this run.")
-else:
-    st.caption("Classification disabled for this run.")
 review_threshold = st.slider(
     "Needs review threshold",
     min_value=0.0,
     max_value=1.0,
     value=0.00,
     step=0.05,
-    help="Flags documents with low classification or field confidence.",
+    help="Flags documents with low field confidence.",
 )
 only_needs_review = st.checkbox("Show only needs review", value=False)
 doc_rows = []
@@ -141,9 +124,6 @@ for row, doc in zip(doc_rows, documents):
         isinstance(value, (int, float)) and value < review_threshold
         for value in field_conf.values()
     )
-    class_conf = doc.get("confidence")
-    if isinstance(class_conf, (int, float)) and class_conf < review_threshold:
-        needs_review = True
     row["review"] = "⚠️ Needs review" if needs_review else "No review needed"
 
 if only_needs_review:
@@ -193,15 +173,6 @@ if selected_doc:
         or selected_doc.get("document_type")
         or ""
     )
-
-    st.markdown(
-        "<div class='extractly-detail-subtitle'>Classification</div>",
-        unsafe_allow_html=True,
-    )
-    if use_classification:
-        st.caption("Classification enabled for this run.")
-    else:
-        st.caption("Not enabled for this run.")
     original_type = selected_doc.get("document_type_original") or selected_doc.get(
         "document_type"
     )
@@ -212,41 +183,6 @@ if selected_doc:
         "extracted", {}
     )
     field_confidence = selected_doc.get("field_confidence", {}) or {}
-    class_confidence = selected_doc.get("confidence")
-
-    if use_classification:
-        classification_label = (
-            f"{class_confidence:.2f}"
-            if isinstance(class_confidence, (int, float))
-            else "—"
-        )
-        classification_needs_review = isinstance(class_confidence, (int, float)) and (
-            class_confidence < review_threshold
-        )
-        classification_card_class = (
-            "extractly-classification-card is-warning"
-            if classification_needs_review
-            else "extractly-classification-card"
-        )
-        classification_status = (
-            "<div class='extractly-classification-status'>Review recommended</div>"
-            if classification_needs_review
-            else ""
-        )
-        st.markdown(
-            f"""
-            <div class='{classification_card_class}'>
-                <div class='extractly-classification-badge'>System field</div>
-                <div class='extractly-classification-label'>Classified schema</div>
-                <div class='extractly-classification-value'>{html.escape(str(doc_type_current or '—'))}</div>
-                <div class='extractly-classification-meta'>
-                    Confidence: {html.escape(classification_label or '—')}
-                </div>
-                {classification_status}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
     low_conf_fields = [
         field
@@ -316,7 +252,6 @@ fieldnames = {
     "document_type",
     "document_type_original",
     "document_type_corrected",
-    "confidence",
 }
 for doc in documents:
     fieldnames.update(doc.get("corrected", {}).keys())
@@ -331,7 +266,6 @@ for doc in documents:
         "document_type": doc_type_corrected,
         "document_type_original": doc_type_original,
         "document_type_corrected": doc_type_corrected,
-        "confidence": doc.get("confidence"),
     }
     row |= doc.get("corrected", {})
     writer.writerow(row)

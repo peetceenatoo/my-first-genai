@@ -11,7 +11,6 @@ from PIL import Image
 
 from src.domain.models import DocumentSchema
 from src.domain.run_store import ExtractionRun, RunDocument, RunStore
-from src.pipeline.classification import classify_document
 from src.pipeline.extraction import extract_metadata
 from src.pipeline.ocr import run_ocr
 
@@ -20,26 +19,25 @@ from src.pipeline.ocr import run_ocr
 class PipelineOptions:
     enable_ocr: bool = False
     compute_confidence: bool = False
-    use_classification: bool = False
 
 
 def run_pipeline(
     *,
     files: list[dict[str, Any]],
-    default_schema: DocumentSchema | None,
-    schema_map: dict[str, DocumentSchema],
-    candidates: list[str],
+    default_schema: DocumentSchema,
     run_store: RunStore,
     options: PipelineOptions,
     schema_name: str | None = None,
     progress_callback: Callable[[str, float], None] | None = None,
 ) -> ExtractionRun:  # sourcery skip: low-code-quality
+    if default_schema is None:
+        raise ValueError("A schema must be provided to run extraction.")
+
     run_id = run_store.create_run_id()
     documents: list[RunDocument] = []
 
     max_pages = None
     vote_runs = 7
-    class_votes = 3 # if options.use_classification... else 0
 
     total_docs = len(files)
     total_steps = max(total_docs * 2, 1)
@@ -121,65 +119,39 @@ def run_pipeline(
         if ocr_text is None and options.enable_ocr:
             ocr_text = run_ocr(images)
 
-        if options.use_classification:
-            report_progress(f"Classifying {idx}/{total_docs} • {filename}")
-            classification = classify_document(
-                images_for_llm,
-                candidates,
-                use_confidence=options.compute_confidence,
-                n_votes=class_votes,
-                text=ocr_text,
-            )
-            doc_type = classification.get("doc_type", "Unknown")
-            confidence = classification.get("confidence")
-        else:
-            doc_type = default_schema.name if default_schema else "Unknown"
-            confidence = None
-            report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
+        doc_type = default_schema.name
+        report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
 
         warnings: list[str] = []
         errors: list[str] = []
         extracted: dict[str, Any] = {}
         field_confidence: dict[str, float | None] = {}
 
-        if doc_type in {"Unknown", "Other"}:
-            warnings.append("Document type is unknown. Extraction skipped.")
-            report_progress(f"Skipping extraction {idx}/{total_docs} • {filename}")
-        else:
-            schema_for_doc = default_schema
-            if options.use_classification:
-                schema_for_doc = schema_map.get(doc_type, default_schema)
-            if not schema_for_doc:
-                warnings.append("No matching schema found. Extraction skipped.")
-                report_progress(f"No schema match {idx}/{total_docs} • {filename}")
+        report_progress(f"Extracting {idx}/{total_docs} • {filename}")
+        try:
+            if vote_runs > 1:
+                votes: list[dict[str, Any]] = []
+                for _ in range(vote_runs):
+                    extraction = extract_metadata(
+                        images_for_llm,
+                        default_schema.fields,
+                        ocr_text=ocr_text,
+                    )
+                    vote_payload = extraction.get("metadata", {})
+                    votes.append(vote_payload)
+                field_names = [field.name for field in default_schema.fields]
+                extracted, field_confidence = aggregate_votes(votes, field_names)
+                if not options.compute_confidence:
+                    field_confidence = {}
             else:
-                report_progress(f"Extracting {idx}/{total_docs} • {filename}")
-                try:
-                    if vote_runs > 1:
-                        votes: list[dict[str, Any]] = []
-                        for _ in range(vote_runs):
-                            extraction = extract_metadata(
-                                images_for_llm,
-                                schema_for_doc.fields,
-                                ocr_text=ocr_text,
-                            )
-                            vote_payload = extraction.get("metadata", {})
-                            votes.append(vote_payload)
-                        field_names = [field.name for field in schema_for_doc.fields]
-                        extracted, field_confidence = aggregate_votes(
-                            votes, field_names
-                        )
-                        if not options.compute_confidence:
-                            field_confidence = {}
-                    else:
-                        extraction = extract_metadata(
-                            images_for_llm,
-                            schema_for_doc.fields,
-                            ocr_text=ocr_text,
-                        )
-                        extracted = extraction.get("metadata", {})
-                except Exception as exc:
-                    errors.append(str(exc))
+                extraction = extract_metadata(
+                    images_for_llm,
+                    default_schema.fields,
+                    ocr_text=ocr_text,
+                )
+                extracted = extraction.get("metadata", {})
+        except Exception as exc:
+            errors.append(str(exc))
 
         preview_image = encode_preview(images)
         documents.append(
@@ -188,7 +160,6 @@ def run_pipeline(
                 document_type=doc_type,
                 document_type_original=doc_type,
                 document_type_corrected=doc_type,
-                confidence=confidence,
                 extracted=extracted,
                 corrected=extracted.copy(),
                 preview_image=preview_image,
@@ -204,10 +175,9 @@ def run_pipeline(
         schema_name=(
             schema_name
             if schema_name is not None
-            else (default_schema.name if default_schema else "Classified")
+            else default_schema.name
         ),
         documents=documents,
-        use_classification=options.use_classification,
     )
     run_store.save(run)
     return run

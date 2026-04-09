@@ -1,6 +1,6 @@
 # Extractly
 
-Extractly is a Streamlit app for defining document schemas, classifying incoming files, and extracting structured metadata with traceable runs. It is designed to feel like a client-ready “Document Metadata Extraction Studio” with clear workflow steps and demo-friendly outputs.
+Extractly is a Streamlit app for defining document schemas and extracting structured metadata with traceable runs. It is designed to feel like a client-ready “Document Metadata Extraction Studio” with clear workflow steps and demo-friendly outputs.
 
 ## Quickstart
 
@@ -37,5 +37,5 @@ docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 - All schemas are stored in a single file (`schemas/schemas.json`) with unique schema names.
 - Keep AWS credentials in `~/.aws/credentials`; do not hardcode secrets.
 - OCR is performed with AWS Textract (`DetectDocumentText`) to provide cleaner text context for extraction.
-- Classification and metadata extraction continue to use Amazon Bedrock models.
+- Metadata extraction uses Amazon Bedrock models.
 - Ensure IAM permissions include both Bedrock runtime access and `textract:DetectDocumentText`.

@@ -1,7 +1,7 @@
 [project]
 name = "extractly"
 version = "0.1.0"
-description = "Extractly is a Streamlit app for defining document schemas, classifying incoming files, and extracting structured metadata with traceable runs."
+description = "Extractly is a Streamlit app for defining document schemas and extracting structured metadata with traceable runs."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

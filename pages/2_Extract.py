@@ -38,8 +38,6 @@ if not schemas:
 schema_names = [schema.name for schema in schemas]
 schema_placeholder = "Select schema"
 
-if "extract_use_classification_prev" not in st.session_state:
-    st.session_state["extract_use_classification_prev"] = False
 if "extract_selected_schema" not in st.session_state:
     st.session_state["extract_selected_schema"] = schema_placeholder
 
@@ -57,21 +55,13 @@ with right:
     section_title("Pipeline options")
     compute_conf = st.toggle("Field confidence", value=True)
     enable_ocr = st.toggle("Enable OCR", value=False)
-    use_classification = st.toggle("Classify", value=False)
-
-    prev_use_classification = st.session_state.get("extract_use_classification_prev", False)
-    if use_classification and not prev_use_classification:
-        st.session_state["extract_selected_schema"] = schema_placeholder
 
     selected_schema_name = st.selectbox(
         "Choose schema",
         options=[schema_placeholder] + schema_names,
         key="extract_selected_schema",
-        disabled=use_classification,
     )
-    st.session_state["extract_use_classification_prev"] = use_classification
-    if use_classification:
-        st.caption("Schema selection is locked while Classify is enabled.")
+    st.caption("Schema selection is required to run extraction.")
 
 section_spacer("lg")
 
@@ -82,7 +72,7 @@ if st.button("Run extraction", type="primary", width="stretch"):
 
     schema_map = {schema.name: schema for schema in schemas}
     selected_schema = schema_map.get(selected_schema_name)
-    if not use_classification and not selected_schema:
+    if not selected_schema:
         st.error("Select a valid schema before running.")
         st.stop()
 
@@ -112,11 +102,9 @@ if st.button("Run extraction", type="primary", width="stretch"):
     options = PipelineOptions(
         enable_ocr=enable_ocr,
         compute_confidence=compute_conf,
-        use_classification=use_classification,
     )
 
-    pipeline_default_schema = None if use_classification else selected_schema
-    run_schema_name = "Classify" if use_classification else selected_schema_name
+    run_schema_name = selected_schema_name
     progress = st.progress(0.0, "Starting pipeline...")
 
     def update_progress(label: str, value: float) -> None:
@@ -124,9 +112,7 @@ if st.button("Run extraction", type="primary", width="stretch"):
 
     run = run_pipeline(
         files=parsed_files,
-        default_schema=pipeline_default_schema,
-        schema_map=schema_map,
-        candidates=schema_names + ["Unknown", "Other"],
+        default_schema=selected_schema,
         run_store=run_store,
         options=options,
         schema_name=run_schema_name,

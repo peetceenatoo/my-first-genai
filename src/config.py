@@ -11,7 +11,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 @dataclass(frozen=True)
 class AppConfig:
     aws_region: str
-    classify_model: str
     extract_model: str
     max_output_tokens: int
     request_timeout_s: int
@@ -30,7 +29,6 @@ def load_config() -> AppConfig:
 
     return AppConfig(
         aws_region=aws_region,
-        classify_model=os.getenv("CLASSIFY_MODEL", "amazon.nova-lite-v1:0"),
         extract_model=os.getenv("EXTRACT_MODEL", "amazon.nova-lite-v1:0"),
         max_output_tokens=int(os.getenv("EXTRACTLY_MAX_TOKENS", "4096")),
         request_timeout_s=int(os.getenv("EXTRACTLY_TIMEOUT_S", "40")),

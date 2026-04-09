@@ -12,7 +12,6 @@ from uuid import uuid4
 class RunDocument:
     filename: str
     document_type: str
-    confidence: float | None
     extracted: dict[str, Any]
     corrected: dict[str, Any]
     document_type_original: str | None = None
@@ -29,7 +28,6 @@ class ExtractionRun:
     started_at: str
     schema_name: str
     documents: list[RunDocument]
-    use_classification: bool = False
     status: str = "completed"
 
     def to_dict(self) -> dict[str, Any]:
@@ -37,7 +35,6 @@ class ExtractionRun:
             "run_id": self.run_id,
             "started_at": self.started_at,
             "schema_name": self.schema_name,
-            "use_classification": self.use_classification,
             "status": self.status,
             "documents": [
                 {
@@ -46,7 +43,6 @@ class ExtractionRun:
                     "document_type_original": doc.document_type_original,
                     "document_type_corrected": doc.document_type_corrected,
                     "preview_image": doc.preview_image,
-                    "confidence": doc.confidence,
                     "extracted": doc.extracted,
                     "corrected": doc.corrected,
                     "field_confidence": doc.field_confidence,
