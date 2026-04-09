@@ -8,7 +8,7 @@ from PIL import Image
 from src.config import load_config
 from src.domain.stores.run_store import RunStore
 from src.domain.stores.schema_store import SchemaStore
-from src.pipeline.preprocess import preprocess
+from src.pipeline.tasks.preprocess import preprocess
 from src.pipeline.runner import PipelineOptions, run_pipeline
 from src.ui.components import (
     inject_branding,
