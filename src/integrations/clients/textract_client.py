@@ -126,6 +126,7 @@ def _extract_queries_from_response(response: dict) -> list[TextractQuery]:
     for qblock in query_blocks:
         query_text = qblock.get("Query", {}).get("Text", "")
         confidence = qblock.get("Confidence", 100) / 100.0
+        answer = ""
         
         # Find answer via ANSWER relationship
         for rel in qblock.get("Relationships", []):
@@ -137,13 +138,15 @@ def _extract_queries_from_response(response: dict) -> list[TextractQuery]:
                         text = block.get("Text", "")
                         if text:
                             answer_texts.append(text)
-                
-                if answer_texts:
-                    queries.append(TextractQuery(
-                        query_text=query_text,
-                        answer=" ".join(answer_texts),
-                        confidence=confidence,
-                    ))
+
+                answer = " ".join(answer_texts) if answer_texts else ""
+                break
+
+        queries.append(TextractQuery(
+            query_text=query_text,
+            answer=answer,
+            confidence=confidence,
+        ))
     
     return queries
 
