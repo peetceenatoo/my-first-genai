@@ -17,7 +17,6 @@ from src.pipeline.tasks.ocr import run_ocr
 
 @dataclass
 class PipelineOptions:
-    enable_ocr: bool = False
     compute_confidence: bool = False
 
 
@@ -37,7 +36,7 @@ def run_pipeline(
     documents: list[RunDocument] = []
 
     max_pages = None
-    vote_runs = 7
+    vote_runs = 7 if options.compute_confidence else 3
 
     total_docs = len(files)
     total_steps = max(total_docs * 2, 1)
@@ -115,8 +114,8 @@ def run_pipeline(
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        ocr_text = payload.get("ocr_text") # in case input document was text already
-        if ocr_text is None and options.enable_ocr:
+        ocr_text = payload.get("ocr_text")  # in case input document was text already
+        if ocr_text is None:
             ocr_text = run_ocr(images)
 
         doc_type = default_schema.name
@@ -129,27 +128,20 @@ def run_pipeline(
 
         report_progress(f"Extracting {idx}/{total_docs} • {filename}")
         try:
-            if vote_runs > 1:
-                votes: list[dict[str, Any]] = []
-                for _ in range(vote_runs):
-                    extraction = extract_metadata(
-                        images_for_llm,
-                        default_schema.fields,
-                        ocr_text=ocr_text,
-                    )
-                    vote_payload = extraction.get("metadata", {})
-                    votes.append(vote_payload)
-                field_names = [field.name for field in default_schema.fields]
-                extracted, field_confidence = aggregate_votes(votes, field_names)
-                if not options.compute_confidence:
-                    field_confidence = {}
-            else:
+            votes: list[dict[str, Any]] = []
+            for _ in range(vote_runs):
                 extraction = extract_metadata(
                     images_for_llm,
                     default_schema.fields,
                     ocr_text=ocr_text,
                 )
-                extracted = extraction.get("metadata", {})
+                vote_payload = extraction.get("metadata", {})
+                votes.append(vote_payload)
+
+            field_names = [field.name for field in default_schema.fields]
+            extracted, field_confidence = aggregate_votes(votes, field_names)
+            if not options.compute_confidence:
+                field_confidence = {}
         except Exception as exc:
             errors.append(str(exc))
 

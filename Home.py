@@ -53,7 +53,7 @@ steps[1].markdown(
     """
     <div class="extractly-step">
         <strong>Step B — Upload documents</strong>
-        <p>Batch PDFs, images, or text. Select a schema and optionally enable OCR to improve extraction quality.</p>
+        <p>Batch PDFs, images, or text. Select a schema and run extraction pipeline.</p>
     </div>
     """,
     unsafe_allow_html=True,

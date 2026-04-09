@@ -4,6 +4,8 @@ Extractly is a Streamlit app for defining document schemas and extracting struct
 
 ## Quickstart
 
+### Without Docker
+
 To run without Docker:
 
 1. Configure AWS credentials with `aws configure` (this writes `~/.aws/credentials` and `~/.aws/config`).
@@ -14,7 +16,7 @@ To run without Docker:
 streamlit run Home.py
 ```
 
-## Docker
+### With Docker
 
 To run with docker:
 
@@ -31,11 +33,25 @@ docker build -t extractly:latest .
 docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 ```
 
+## About
+
+### Schema Studio
+- New schemas can be created in the Schema Studio.
+- All schemas are stored in a single file (`schemas/schemas.json`) with unique schema names.
+
+### Pipeline
+- Input documents are pre-processed.
+- OCR is performed with AWS Textract (`DetectDocumentText`) to extract text from images.
+- Metadata extraction from textual context uses Amazon Bedrock models.
+
+### Output
+- All extraction runs are stored in `data/runs/` with input filenames and output JSON.
+
 ## Notes
 
-- All extraction runs are stored in `data/runs/` with input filenames and output JSON.
-- All schemas are stored in a single file (`schemas/schemas.json`) with unique schema names.
+### Access
 - Keep AWS credentials in `~/.aws/credentials`; do not hardcode secrets.
-- OCR is performed with AWS Textract (`DetectDocumentText`) to provide cleaner text context for extraction.
-- Metadata extraction uses Amazon Bedrock models.
 - Ensure IAM permissions include both Bedrock runtime access and `textract:DetectDocumentText`.
+
+
+

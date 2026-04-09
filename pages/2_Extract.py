@@ -54,7 +54,6 @@ with left:
 with right:
     section_title("Pipeline options")
     compute_conf = st.toggle("Field confidence", value=True)
-    enable_ocr = st.toggle("Enable OCR", value=False)
 
     selected_schema_name = st.selectbox(
         "Choose schema",
@@ -100,7 +99,6 @@ if st.button("Run extraction", type="primary", width="stretch"):
 
     progress.empty()
     options = PipelineOptions(
-        enable_ocr=enable_ocr,
         compute_confidence=compute_conf,
     )
 
