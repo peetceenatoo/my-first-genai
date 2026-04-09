@@ -7,7 +7,6 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia il progetto
 COPY pyproject.toml README.md Home.py ./
 COPY src ./src
 COPY pages ./pages
@@ -15,12 +14,10 @@ COPY schemas ./schemas
 COPY data ./data
 COPY .streamlit ./.streamlit
 
-# Installa il package principale
 RUN pip install --no-cache-dir .
 
-# Assicura permessi per Streamlit
 RUN mkdir -p /app/.streamlit && chmod -R 777 /app/.streamlit
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "Home.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.fileWatcherType=none"]
