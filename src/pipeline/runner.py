@@ -52,23 +52,20 @@ def run_pipeline(
 
     def canonicalize(value: Any) -> str:
         if value is None:
-            return ""
+            return "__NONE__"
         if isinstance(value, (dict, list)):
             return json.dumps(value, sort_keys=True, ensure_ascii=False)
         return str(value)
 
-    def has_meaningful_value(value: Any) -> bool:
+    def normalize_vote_value(value: Any) -> Any:
         if value is None:
-            return False
-        if isinstance(value, bool):
-            return True
-        if isinstance(value, (int, float)):
-            return True
+            return None
         if isinstance(value, str):
-            return bool(value.strip())
+            cleaned = value.strip()
+            return cleaned if cleaned else None
         if isinstance(value, (list, dict)):
-            return len(value) > 0
-        return bool(str(value).strip())
+            return value if len(value) > 0 else None
+        return value
 
     def aggregate_votes(
         votes: list[dict[str, Any]], field_names: list[str]
@@ -80,22 +77,20 @@ def run_pipeline(
             counts: dict[str, int] = {}
             samples: dict[str, Any] = {}
             for vote in votes:
-                value = vote.get(field_name, "")
-                if not has_meaningful_value(value):
-                    continue
+                value = normalize_vote_value(vote.get(field_name, None))
                 key = canonicalize(value)
                 counts[key] = counts.get(key, 0) + 1
                 if key not in samples:
                     samples[key] = value
             if not counts:
-                merged[field_name] = ""
+                merged[field_name] = None
                 confidences[field_name] = None
                 continue
 
             best = max(counts, key=lambda k: counts[k])
-            best_value = samples.get(best, "")
+            best_value = samples.get(best, None)
             merged[field_name] = best_value
-            if best_value is None or not str(best_value).strip():
+            if best_value is None:
                 confidences[field_name] = None
             else:
                 confidences[field_name] = counts[best] / total_votes
@@ -121,11 +116,9 @@ def run_pipeline(
         textract_doc = payload.get("textract_document")  # in case pre-extracted
         if textract_doc is None:
             textract_doc = run_ocr(images_for_llm, queries=query_strings)
-
         doc_type = default_schema.name
         report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
 
-        warnings: list[str] = []
         errors: list[str] = []
         extracted: dict[str, Any] = {}
         field_confidence: dict[str, float | None] = {}

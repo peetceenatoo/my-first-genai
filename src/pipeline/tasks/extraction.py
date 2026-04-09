@@ -25,6 +25,8 @@ REGOLE CRITICHE DI FORMATTAZIONE JSON:
 REGOLE DI ESTRAZIONE:
 - Le chiavi nel JSON devono essere SOLO il nome del campo, senza tipo né (required).
 - Le chiavi devono corrispondere esattamente ai nomi dei campi forniti nello schema.
+- I campi marcati come required DEVONO avere un valore quando il valore e presente o deducibile dal documento.
+- Se un campo required non e leggibile o non presente, restituisci "" per quel campo (mai null) e non inventare nulla.
 - Usa una stringa vuota quando un valore manca o non è leggibile.
 - Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore, non nella struttura JSON.
 - Non inferire né inventare valori non presenti nel documento.
