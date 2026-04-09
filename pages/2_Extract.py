@@ -9,8 +9,6 @@ from src.config import load_config
 from src.domain.run_store import RunStore
 from src.domain.schema_store import SchemaStore
 from src.integrations.preprocess import preprocess
-from src.pipeline.classification import DEFAULT_CLASSIFIER_PROMPT
-from src.pipeline.extraction import DEFAULT_EXTRACTION_PROMPT
 from src.pipeline.runner import PipelineOptions, run_pipeline
 from src.ui.components import (
     inject_branding,
@@ -75,24 +73,6 @@ with right:
     if use_classification:
         st.caption("Schema selection is locked while Classify is enabled.")
 
-with st.sidebar:
-    st.subheader("Used prompts")
-    with st.expander("Edit prompts", expanded=False):
-        classifier_prompt = st.text_area(
-            "Classifier prompt",
-            value=st.session_state.get("classifier_prompt", DEFAULT_CLASSIFIER_PROMPT),
-            height=140,
-        )
-        extractor_prompt = st.text_area(
-            "Extraction prompt",
-            value=st.session_state.get("extractor_prompt", DEFAULT_EXTRACTION_PROMPT),
-            height=160,
-        )
-        if st.button("Save prompts"):
-            st.session_state["classifier_prompt"] = classifier_prompt
-            st.session_state["extractor_prompt"] = extractor_prompt
-            st.success("Prompts saved.")
-
 section_spacer("lg")
 
 if st.button("Run extraction", type="primary", width="stretch"):
@@ -133,8 +113,6 @@ if st.button("Run extraction", type="primary", width="stretch"):
         enable_ocr=enable_ocr,
         compute_confidence=compute_conf,
         use_classification=use_classification,
-        classifier_prompt=st.session_state.get("classifier_prompt"),
-        extraction_prompt=st.session_state.get("extractor_prompt"),
     )
 
     pipeline_default_schema = None if use_classification else selected_schema

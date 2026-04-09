@@ -21,8 +21,6 @@ class PipelineOptions:
     enable_ocr: bool = False
     compute_confidence: bool = False
     use_classification: bool = False
-    classifier_prompt: str | None = None
-    extraction_prompt: str | None = None
 
 
 def run_pipeline(
@@ -130,7 +128,6 @@ def run_pipeline(
                 candidates,
                 use_confidence=options.compute_confidence,
                 n_votes=class_votes,
-                system_prompt=options.classifier_prompt,
                 text=ocr_text,
             )
             doc_type = classification.get("doc_type", "Unknown")
@@ -165,7 +162,6 @@ def run_pipeline(
                                 images_for_llm,
                                 schema_for_doc.fields,
                                 ocr_text=ocr_text,
-                                system_prompt=options.extraction_prompt,
                             )
                             vote_payload = extraction.get("metadata", {})
                             votes.append(vote_payload)
@@ -180,7 +176,6 @@ def run_pipeline(
                             images_for_llm,
                             schema_for_doc.fields,
                             ocr_text=ocr_text,
-                            system_prompt=options.extraction_prompt,
                         )
                         extracted = extraction.get("metadata", {})
                 except Exception as exc:

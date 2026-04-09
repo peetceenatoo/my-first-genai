@@ -74,10 +74,8 @@ def extract_metadata(
     fields: list[SchemaField],
     *,
     ocr_text: str | None = None,
-    system_prompt: str | None = None,
 ) -> dict[str, Any]:
     config = load_config()
-    prompt = system_prompt or DEFAULT_EXTRACTION_PROMPT
 
     field_lines = "\n".join(_render_field(field) for field in fields)
     instructions = (
@@ -102,7 +100,7 @@ def extract_metadata(
             )
 
     messages = [
-        {"role": "system", "content": prompt},
+        {"role": "system", "content": DEFAULT_EXTRACTION_PROMPT},
         {"role": "user", "content": content},
     ]
 

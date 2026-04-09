@@ -30,11 +30,9 @@ def classify_document(
     *,
     use_confidence: bool = False,
     n_votes: int = 3,
-    system_prompt: str | None = None,
     text: str | None = None,
 ) -> dict[str, Any]:
     config = load_config()
-    prompt = system_prompt or DEFAULT_CLASSIFIER_PROMPT
 
     def _single_vote() -> str:
         content = [
@@ -59,7 +57,7 @@ def classify_document(
             )
 
         messages = [
-            {"role": "system", "content": prompt},
+            {"role": "system", "content": DEFAULT_CLASSIFIER_PROMPT},
             {"role": "user", "content": content},
         ]
         return get_chat_completion(messages, model=config.classify_model).strip()
