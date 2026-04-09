@@ -29,6 +29,7 @@ class ExtractionRun:
     schema_name: str
     documents: list[RunDocument]
     status: str = "completed"
+    compute_confidence: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -36,6 +37,7 @@ class ExtractionRun:
             "started_at": self.started_at,
             "schema_name": self.schema_name,
             "status": self.status,
+            "compute_confidence": self.compute_confidence,
             "documents": [
                 {
                     "filename": doc.filename,

@@ -170,6 +170,7 @@ def run_pipeline(
             else default_schema.name
         ),
         documents=documents,
+        compute_confidence=options.compute_confidence,
     )
     run_store.save(run)
     return run

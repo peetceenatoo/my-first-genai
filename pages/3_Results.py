@@ -94,15 +94,27 @@ st.markdown(
 section_spacer("lg")
 
 section_title("Documents")
-review_threshold = st.slider(
-    "Needs review threshold",
-    min_value=0.0,
-    max_value=1.0,
-    value=0.00,
-    step=0.05,
-    help="Flags documents with low field confidence.",
-)
-only_needs_review = st.checkbox("Show only needs review", value=False)
+run_compute_confidence = run.get("compute_confidence")
+if isinstance(run_compute_confidence, bool):
+    confidence_enabled = run_compute_confidence
+else:
+    # Backward-compatible fallback for runs created before run-level flag persistence.
+    confidence_enabled = any(
+        bool((doc.get("field_confidence") or {})) for doc in documents
+    )
+
+review_threshold = 0.0
+only_needs_review = False
+if confidence_enabled:
+    review_threshold = st.slider(
+        "Needs review threshold",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.00,
+        step=0.05,
+        help="Flags documents with low field confidence.",
+    )
+    only_needs_review = st.checkbox("Show only needs review", value=False)
 doc_rows = []
 doc_rows.extend(
     (
@@ -111,33 +123,37 @@ doc_rows.extend(
             "document_type": (
                 doc.get("document_type_corrected") or doc.get("document_type") or "—"
             ),
-            "review": "",
             "warnings": len(doc.get("warnings", [])),
             "errors": len(doc.get("errors", [])),
         }
     )
     for doc in documents
 )
-for row, doc in zip(doc_rows, documents):
-    field_conf = doc.get("field_confidence", {}) or {}
-    needs_review = any(
-        isinstance(value, (int, float)) and value < review_threshold
-        for value in field_conf.values()
-    )
-    row["review"] = "⚠️ Needs review" if needs_review else "No review needed"
+if confidence_enabled:
+    for row, doc in zip(doc_rows, documents):
+        field_conf = doc.get("field_confidence", {}) or {}
+        needs_review = any(
+            isinstance(value, (int, float)) and value < review_threshold
+            for value in field_conf.values()
+        )
+        row["review"] = "⚠️ Needs review" if needs_review else ""
 
 if only_needs_review:
-    doc_rows = [row for row in doc_rows if row.get("review")]
+    doc_rows = [row for row in doc_rows if row.get("review") == "⚠️ Needs review"]
+
+doc_column_config = {
+    "filename": st.column_config.TextColumn("File", width="medium"),
+    "document_type": st.column_config.TextColumn("Schema", width="small"),
+    "warnings": st.column_config.NumberColumn("Warnings", width="small"),
+    "errors": st.column_config.NumberColumn("Errors", width="small"),
+}
+if confidence_enabled:
+    doc_column_config["review"] = st.column_config.TextColumn("Review", width="small")
+
 st.dataframe(
     doc_rows,
     width="stretch",
-    column_config={
-        "filename": st.column_config.TextColumn("File", width="medium"),
-        "document_type": st.column_config.TextColumn("Schema", width="small"),
-        "review": st.column_config.TextColumn("Review", width="small"),
-        "warnings": st.column_config.NumberColumn("Warnings", width="small"),
-        "errors": st.column_config.NumberColumn("Errors", width="small"),
-    },
+    column_config=doc_column_config,
 )
 
 section_spacer()
@@ -184,32 +200,55 @@ if selected_doc:
     )
     field_confidence = selected_doc.get("field_confidence", {}) or {}
 
-    low_conf_fields = [
-        field
-        for field, value in field_confidence.items()
-        if isinstance(value, (int, float)) and value < review_threshold
-    ]
-    if low_conf_fields:
-        st.caption("Low confidence: " + ", ".join(sorted(low_conf_fields)))
+    if confidence_enabled:
+        low_conf_fields = [
+            field
+            for field, value in field_confidence.items()
+            if isinstance(value, (int, float)) and value < review_threshold
+        ]
+        if low_conf_fields:
+            st.caption("Low confidence: " + ", ".join(sorted(low_conf_fields)))
 
     field_rows = []
     for key, value in corrected_payload.items():
         display_value = _boolean_presence_label(value)
-        confidence_value = field_confidence.get(key, "")
-        status_label = ""
-        if (
-            isinstance(confidence_value, (int, float))
-            and confidence_value < review_threshold
-        ):
-            status_label = "⚠️"
-        field_rows.append(
-            {
-                "field": key,
-                "value": display_value,
-                "confidence": confidence_value,
-                "status": status_label,
-            }
+        if confidence_enabled:
+            confidence_value = field_confidence.get(key, "")
+            status_label = ""
+            if (
+                isinstance(confidence_value, (int, float))
+                and confidence_value < review_threshold
+            ):
+                status_label = "⚠️"
+            field_rows.append(
+                {
+                    "field": key,
+                    "value": display_value,
+                    "confidence": confidence_value,
+                    "status": status_label,
+                }
+            )
+        else:
+            field_rows.append(
+                {
+                    "field": key,
+                    "value": display_value,
+                }
+            )
+
+    field_column_config = {
+        "field": st.column_config.TextColumn("Field", width="small"),
+        "value": st.column_config.TextColumn("Value", width="large"),
+    }
+    disabled_columns = ["field", "value"]
+    if confidence_enabled:
+        field_column_config["confidence"] = st.column_config.NumberColumn(
+            "Confidence", width="small"
         )
+        field_column_config["status"] = st.column_config.TextColumn(
+            "Flag", width="small"
+        )
+        disabled_columns.extend(["confidence", "status"])
 
     st.markdown(
         "<div class='extractly-detail-subtitle'>Extracted fields</div>",
@@ -219,13 +258,8 @@ if selected_doc:
         field_rows,
         num_rows="fixed",
         width="stretch",
-        column_config={
-            "field": st.column_config.TextColumn("Field", width="small"),
-            "value": st.column_config.TextColumn("Value", width="large"),
-            "confidence": st.column_config.NumberColumn("Confidence", width="small"),
-            "status": st.column_config.TextColumn("Flag", width="small"),
-        },
-        disabled=["field", "value", "confidence", "status"],
+        column_config=field_column_config,
+        disabled=disabled_columns,
         key=f"field_editor_{selected_doc_name}",
     )
 
