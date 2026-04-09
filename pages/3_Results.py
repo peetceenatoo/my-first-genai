@@ -10,7 +10,7 @@ from pathlib import Path
 import streamlit as st
 
 from src.config import load_config
-from src.domain.run_store import RunStore
+from src.domain.stores.run_store import RunStore
 from src.ui.components import (
     inject_branding,
     inject_global_styles,

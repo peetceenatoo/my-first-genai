@@ -9,10 +9,10 @@ from typing import Any, Callable
 
 from PIL import Image
 
-from src.domain.models import DocumentSchema
-from src.domain.run_store import ExtractionRun, RunDocument, RunStore
-from src.pipeline.extraction import extract_metadata
-from src.pipeline.ocr import run_ocr
+from src.domain.utils.schema_types import DocumentSchema
+from src.domain.stores.run_store import ExtractionRun, RunDocument, RunStore
+from src.pipeline.tasks.extraction import extract_metadata
+from src.pipeline.tasks.ocr import run_ocr
 
 
 @dataclass

@@ -6,9 +6,9 @@ import streamlit as st
 from PIL import Image
 
 from src.config import load_config
-from src.domain.run_store import RunStore
-from src.domain.schema_store import SchemaStore
-from src.integrations.preprocess import preprocess
+from src.domain.stores.run_store import RunStore
+from src.domain.stores.schema_store import SchemaStore
+from src.pipeline.preprocess import preprocess
 from src.pipeline.runner import PipelineOptions, run_pipeline
 from src.ui.components import (
     inject_branding,

@@ -6,8 +6,8 @@ from pathlib import Path
 import streamlit as st
 
 from src.config import load_config
-from src.domain.schema_store import SchemaStore, schemas_to_table, table_to_schema
-from src.domain.validation import validate_schema
+from src.domain.stores.schema_store import SchemaStore, schemas_to_table, table_to_schema
+from src.domain.utils.schema_validation import validate_schema
 from src.ui.components import (
     inject_branding,
     inject_global_styles,

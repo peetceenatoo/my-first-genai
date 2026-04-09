@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.domain.models import DocumentSchema, FIELD_TYPES
+from src.domain.utils.schema_types import DocumentSchema, FIELD_TYPES
 
 
 @dataclass

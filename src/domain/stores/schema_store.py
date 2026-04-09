@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 from typing import Iterable
 
-from src.domain.models import DocumentSchema, SchemaField
-from src.domain.validation import validate_schema, ValidationResult
+from src.domain.utils.schema_types import DocumentSchema, SchemaField
+from src.domain.utils.schema_validation import validate_schema, ValidationResult
 
 
 class SchemaStore:

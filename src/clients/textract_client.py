@@ -31,7 +31,7 @@ def _extract_lines(blocks: list[dict]) -> str:
 def _extract_text_from_analyze(blocks: list[dict]) -> str:
     """Extract text from AnalyzeDocument response (KEY_VALUE_SET, TABLE, LINE blocks)."""
     lines: list[str] = []
-    
+
     # Build map of block IDs to text for relationship resolution
     block_map: dict[str, str] = {}
     for block in blocks:
@@ -39,7 +39,7 @@ def _extract_text_from_analyze(blocks: list[dict]) -> str:
         text = block.get("Text", "")
         if block_id and text:
             block_map[block_id] = text
-    
+
     # Extract key-value pairs from forms
     for block in blocks:
         if block.get("BlockType") == "KEY_VALUE_SET":
@@ -51,7 +51,7 @@ def _extract_text_from_analyze(blocks: list[dict]) -> str:
                     if rel.get("Type") == "CHILD":
                         for child_id in rel.get("Ids", []):
                             key_text += block_map.get(child_id, "")
-                
+
                 # Find corresponding value
                 for rel in block.get("Relationships", []):
                     if rel.get("Type") == "VALUE":
@@ -65,7 +65,7 @@ def _extract_text_from_analyze(blocks: list[dict]) -> str:
                                                 value_text += block_map.get(child_id, "")
                                     if key_text.strip() and value_text.strip():
                                         lines.append(f"{key_text.strip()}: {value_text.strip()}")
-    
+
     # Extract table text
     for block in blocks:
         if block.get("BlockType") == "TABLE":
@@ -75,20 +75,20 @@ def _extract_text_from_analyze(blocks: list[dict]) -> str:
                         cell_text = block_map.get(cell_id, "")
                         if cell_text.strip() and cell_text not in lines:
                             lines.append(cell_text.strip())
-    
+
     # Fallback: extract all remaining LINE blocks
     for block in blocks:
         if block.get("BlockType") == "LINE":
             text = str(block.get("Text", "")).strip()
             if text and text not in lines:
                 lines.append(text)
-    
+
     return "\n".join(lines)
 
 
 def detect_text(image: Image.Image) -> str:
     """
-    Extract text from image using AWS Textract AnalyzeDocument (primary) 
+    Extract text from image using AWS Textract AnalyzeDocument (primary)
     or DetectDocumentText (fallback).
     """
     config = load_config()

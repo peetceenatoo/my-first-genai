@@ -9,8 +9,8 @@ from typing import Any
 from PIL import Image
 
 from src.config import load_config
-from src.domain.models import SchemaField
-from src.integrations.bedrock_client import get_chat_completion
+from src.domain.utils.schema_types import SchemaField
+from src.clients.bedrock_client import get_chat_completion
 
 
 DEFAULT_EXTRACTION_PROMPT = """Estrai metadati strutturati dai documenti.
@@ -91,7 +91,7 @@ def extract_metadata(
         parts.extend(("Testo OCR:", ocr_text))
 
     content = [{"type": "text", "text": "\n".join(parts)}]
-    
+
     # Usa solo il testo OCR se disponibile; fallback alle immagini se OCR non fornito
     if not ocr_text and images:
         for image in images:

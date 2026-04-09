@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PIL import Image
 
-from src.integrations.textract_client import detect_text
+from src.clients.textract_client import detect_text
 
 
 def run_ocr(images: list[Image.Image]) -> str:
