@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-ENV PYTHONPATH="${PYTHONPATH}:/app"
+ENV PYTHONPATH=/app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends poppler-utils \
@@ -9,7 +9,11 @@ RUN apt-get update \
 
 # Copia il progetto
 COPY pyproject.toml README.md Home.py ./
-COPY src pages schemas data .streamlit ./
+COPY src ./src
+COPY pages ./pages
+COPY schemas ./schemas
+COPY data ./data
+COPY .streamlit ./.streamlit
 
 # Installa il package principale
 RUN pip install --no-cache-dir .

@@ -20,3 +20,7 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}   # tells setuptools that code lives in /src
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
