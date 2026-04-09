@@ -4,7 +4,7 @@ port = 8501
 enableCORS = false
 enableXsrfProtection = false
 fileWatcherType = "auto"
-maxUploadSize = 200
+maxUploadSize = 10
 
 [client]
 toolbarMode = "minimal"

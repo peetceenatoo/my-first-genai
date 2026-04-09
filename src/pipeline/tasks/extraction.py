@@ -10,7 +10,8 @@ from PIL import Image
 
 from src.config import load_config
 from src.domain.utils.schema_types import SchemaField
-from src.clients.bedrock_client import get_chat_completion
+from src.integrations.clients.bedrock_client import get_chat_completion
+from src.integrations.utils.textract_types import TextractDocument
 
 
 DEFAULT_EXTRACTION_PROMPT = """Estrai metadati strutturati dai documenti.
@@ -74,6 +75,7 @@ def extract_metadata(
     fields: list[SchemaField],
     *,
     ocr_text: str | None = None,
+    textract_document: TextractDocument | None = None,
 ) -> dict[str, Any]:
     config = load_config()
 
@@ -87,13 +89,28 @@ def extract_metadata(
         "Campi:",
         field_lines,
     ]
-    if ocr_text:
-        parts.extend(("Testo OCR:", ocr_text))
+    
+    # Use TextractDocument if available (preferred), otherwise fall back to plain text or images
+    if textract_document:
+        # Serialize the canonical TextractDocument into a rich context
+        parts.append("")
+        parts.append("## DOCUMENTO STRUTTURATO ESTRATTO")
+        parts.append(textract_document.to_context_string())
+        # Also include metadata
+        parts.append("")
+        parts.append(f"Motore Textract: {textract_document.textract_api_used}")
+        if textract_document.extraction_confidence is not None:
+            parts.append(f"Confidence: {textract_document.extraction_confidence:.1%}")
+    elif ocr_text:
+        # Legacy: plain text OCR
+        parts.append("")
+        parts.append("## TESTO OCR")
+        parts.append(ocr_text)
 
     content = [{"type": "text", "text": "\n".join(parts)}]
 
-    # Usa solo il testo OCR se disponibile; fallback alle immagini se OCR non fornito
-    if not ocr_text and images:
+    # Use only extracted text if available; fallback to images if no OCR data provided
+    if not textract_document and not ocr_text and images:
         for image in images:
             content.append(
                 {"type": "image_url", "image_url": {"url": _image_to_data_uri(image)}}

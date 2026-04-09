@@ -9,6 +9,7 @@ from typing import Any, Callable
 
 from PIL import Image
 
+from src.integrations.utils.textract_types import TextractDocument
 from src.domain.utils.schema_types import DocumentSchema
 from src.domain.stores.run_store import ExtractionRun, RunDocument, RunStore
 from src.pipeline.tasks.extraction import extract_metadata
@@ -114,9 +115,12 @@ def run_pipeline(
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        ocr_text = payload.get("ocr_text")  # in case input document was text already
-        if ocr_text is None:
-            ocr_text = run_ocr(images)
+        # Extract OCR with queries based on required schema fields
+        query_strings = [field.name for field in default_schema.fields if field.required]
+        report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
+        textract_doc = payload.get("textract_document")  # in case pre-extracted
+        if textract_doc is None:
+            textract_doc = run_ocr(images_for_llm, queries=query_strings)
 
         doc_type = default_schema.name
         report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
@@ -133,7 +137,7 @@ def run_pipeline(
                 extraction = extract_metadata(
                     images_for_llm,
                     default_schema.fields,
-                    ocr_text=ocr_text,
+                    textract_document=textract_doc,
                 )
                 vote_payload = extraction.get("metadata", {})
                 votes.append(vote_payload)
