@@ -153,7 +153,6 @@ def run_pipeline(
                 corrected=extracted.copy(),
                 preview_image=preview_image,
                 field_confidence=field_confidence,
-                warnings=warnings,
                 errors=errors,
             )
         )
