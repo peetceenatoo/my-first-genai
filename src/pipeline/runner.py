@@ -91,10 +91,7 @@ def run_pipeline(
             best = max(counts, key=lambda k: counts[k])
             best_value = samples.get(best, None)
             merged[field_name] = best_value
-            if best_value is None:
-                confidences[field_name] = None
-            else:
-                confidences[field_name] = counts[best] / total_votes
+            confidences[field_name] = counts[best] / total_votes
         return merged, confidences
 
     def encode_preview(images: list[Image.Image]) -> str | None:
