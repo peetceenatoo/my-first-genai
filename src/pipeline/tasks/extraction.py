@@ -27,7 +27,7 @@ REGOLE DI ESTRAZIONE:
 - Le chiavi devono corrispondere esattamente ai nomi dei campi forniti nello schema.
 - Se un campo non è leggibile o non è presente, restituisci "" per quel campo (mai null), e non inventare nulla.
 - Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore, non nella struttura JSON.
-- Non inferire né inventare valori non presenti nel documento.
+- Non inferire né inventare valori non presenti nel documento. Limitati a estrarli dal testo estratto, non dagli schemi nè dalle regole.
 - I valori possono comparire senza etichetta nell'immagine: cerca il valore stesso in base al suo significato, non solo l'etichetta.
 """
 

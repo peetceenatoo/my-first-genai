@@ -54,6 +54,11 @@ with left:
 with right:
     section_title("Pipeline options")
     compute_conf = st.toggle("Field confidence", value=True)
+    improve_ocr = st.toggle(
+        "Improve OCR",
+        value=True,
+        help="On: AnalyzeDocument + QUERIES. Off: DetectDocumentText only.",
+    )
 
     selected_schema_name = st.selectbox(
         "Choose schema",
@@ -100,6 +105,7 @@ if st.button("Run extraction", type="primary", width="stretch"):
     progress.empty()
     options = PipelineOptions(
         compute_confidence=compute_conf,
+        improve_ocr=improve_ocr,
     )
 
     run_schema_name = selected_schema_name

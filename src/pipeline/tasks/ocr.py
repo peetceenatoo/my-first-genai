@@ -6,14 +6,19 @@ from src.integrations.clients.textract_client import detect_text
 from src.integrations.utils.textract_types import TextractDocument
 
 
-def run_ocr(images: list[Image.Image], queries: list[str] | None = None) -> TextractDocument:
+def run_ocr(
+    images: list[Image.Image],
+    queries: list[str] | None = None,
+    *,
+    improve_ocr: bool = True,
+) -> TextractDocument:
     if not images:
         return TextractDocument()
     
     documents: list[TextractDocument] = []
     
     for page_num, image in enumerate(images, start=1):
-        doc = detect_text(image, queries=queries)
+        doc = detect_text(image, queries=queries, improve_ocr=improve_ocr)
         doc.page_number = page_num
         doc.num_pages = len(images)
         documents.append(doc)

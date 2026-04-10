@@ -19,6 +19,7 @@ from src.pipeline.tasks.ocr import run_ocr
 @dataclass
 class PipelineOptions:
     compute_confidence: bool = False
+    improve_ocr: bool = True
 
 
 def run_pipeline(
@@ -108,12 +109,24 @@ def run_pipeline(
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        # Extract OCR with queries based on all schema fields
+        # Extract OCR with queries based on all schema fields when enhancement is enabled.
         query_strings = [field.name for field in default_schema.fields]
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
         textract_doc = payload.get("textract_document")  # in case pre-extracted
+        provided_ocr_text = payload.get("ocr_text")
         if textract_doc is None:
-            textract_doc = run_ocr(images_for_llm, queries=query_strings)
+            if provided_ocr_text is not None:
+                textract_doc = TextractDocument(
+                    plain_text=str(provided_ocr_text),
+                    num_pages=len(images_for_llm),
+                    textract_api_used="InputText",
+                )
+            else:
+                textract_doc = run_ocr(
+                    images_for_llm,
+                    queries=query_strings,
+                    improve_ocr=options.improve_ocr,
+                )
         doc_type = default_schema.name
         report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
 
