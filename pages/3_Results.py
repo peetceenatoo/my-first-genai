@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import csv
 import io
 import json
@@ -174,17 +173,6 @@ selected_doc = next(
 )
 
 if selected_doc:
-    preview_b64 = selected_doc.get("preview_image")
-    if preview_b64:
-        with st.expander("Document preview", expanded=True):
-            st.image(
-                base64.b64decode(preview_b64),
-                width="stretch",
-                caption=selected_doc_name,
-            )
-    else:
-        st.caption("No preview available for this run.")
-
     doc_type_current = (
         selected_doc.get("document_type_corrected")
         or selected_doc.get("document_type")
