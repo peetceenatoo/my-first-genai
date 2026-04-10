@@ -20,7 +20,6 @@ FIELD_TYPES = {
 class SchemaField:
     name: str
     field_type: str = "string"
-    required: bool = False
     description: str = ""
     example: str = ""
     enum_values: list[str] = field(default_factory=list)
@@ -29,7 +28,6 @@ class SchemaField:
         payload = {
             "name": self.name,
             "type": self.field_type,
-            "required": self.required,
             "description": self.description,
             "example": self.example,
         }

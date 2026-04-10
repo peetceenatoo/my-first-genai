@@ -60,7 +60,7 @@ with right:
         options=[schema_placeholder] + schema_names,
         key="extract_selected_schema",
     )
-    st.caption("Schema selection is required to run extraction.")
+    st.caption("Select a schema to run extraction.")
 
 section_spacer("lg")
 

@@ -77,7 +77,8 @@ class SchemaStore:
         if not path.exists():
             return {}
         try:
-            with path.open("r", encoding="utf-8") as fp:
+            # Accept UTF-8 with or without BOM for compatibility with external edits.
+            with path.open("r", encoding="utf-8-sig") as fp:
                 payload = json.load(fp)
             if isinstance(payload, dict):
                 return payload
@@ -120,7 +121,6 @@ class SchemaStore:
         return SchemaField(
             name=str(field.get("name", "")).strip(),
             field_type=field.get("type", field.get("field_type", "string")),
-            required=bool(field.get("required", False)),
             description=str(field.get("description", "")),
             example=str(field.get("example", "")),
             enum_values=enum_values,
@@ -132,7 +132,6 @@ def schemas_to_table(schema: DocumentSchema) -> list[dict]:
         {
             "name": field.name,
             "type": field.field_type,
-            "required": field.required,
             "description": field.description,
             "example": field.example,
             "enum": ", ".join(field.enum_values),
@@ -153,7 +152,6 @@ def table_to_schema(
             SchemaField(
                 name=str(row.get("name", "")).strip(),
                 field_type=row.get("type", "string"),
-                required=bool(row.get("required", False)),
                 description=str(row.get("description", "")).strip(),
                 example=str(row.get("example", "")).strip(),
                 enum_values=enum_values,

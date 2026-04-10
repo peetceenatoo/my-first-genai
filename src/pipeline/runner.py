@@ -108,8 +108,8 @@ def run_pipeline(
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        # Extract OCR with queries based on required schema fields
-        query_strings = [field.name for field in default_schema.fields if field.required]
+        # Extract OCR with queries based on all schema fields
+        query_strings = [field.name for field in default_schema.fields]
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
         textract_doc = payload.get("textract_document")  # in case pre-extracted
         if textract_doc is None:

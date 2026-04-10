@@ -152,7 +152,6 @@ editor_rows = (
         {
             "name": pd.Series(dtype="str"),
             "type": pd.Series(dtype="str"),
-            "required": pd.Series(dtype="bool"),
             "description": pd.Series(dtype="str"),
             "example": pd.Series(dtype="str"),
             "enum": pd.Series(dtype="str"),
@@ -168,7 +167,7 @@ data = st.data_editor(
     num_rows="dynamic",
     width="stretch",
     column_config={
-        "name": st.column_config.TextColumn("Field name", required=True),
+        "name": st.column_config.TextColumn("Field name"),
         "type": st.column_config.SelectboxColumn(
             "Type",
             options=[
@@ -181,9 +180,7 @@ data = st.data_editor(
                 "object",
                 "array",
             ],
-            required=True,
         ),
-        "required": st.column_config.CheckboxColumn("Required"),
         "description": st.column_config.TextColumn("Description"),
         "example": st.column_config.TextColumn("Example"),
         "enum": st.column_config.TextColumn("Enum values (comma-separated)"),
@@ -215,10 +212,9 @@ schema = table_to_schema(
 )
 validation = validate_schema(schema)
 
-summary_cols = st.columns(3)
+summary_cols = st.columns(2)
 summary_cols[0].metric("Fields", len(schema.fields))
-summary_cols[1].metric("Required", sum(field.required for field in schema.fields))
-summary_cols[2].metric(
+summary_cols[1].metric(
     "Enums",
     sum(field.field_type == "enum" for field in schema.fields),
 )

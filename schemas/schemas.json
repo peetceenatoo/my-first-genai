@@ -6,94 +6,62 @@
       {
         "name": "Numero Documento",
         "type": "string",
-        "required": false,
-        "description": "Numero univoco della carta d'identita."
+        "description": "Numero univoco della carta d'identita, generalmente in formato AA00000AA."
       },
       {
         "name": "Cognome",
         "type": "string",
-        "required": true,
         "description": "Cognome del titolare come riportato sulla carta."
       },
       {
         "name": "Nome",
         "type": "string",
-        "required": true,
         "description": "Nome del titolare."
       },
       {
         "name": "Sesso",
         "type": "string",
-        "required": false,
         "description": "Indicazione del sesso riportata sul documento."
       },
       {
         "name": "Data di Nascita",
         "type": "date",
-        "required": false,
         "description": "Data di nascita del titolare."
       },
       {
         "name": "Luogo di Nascita",
         "type": "string",
-        "required": false,
-        "description": "Comune o paese di nascita."
+        "description": "Comune o paese di nascita, con sigla della provincia tra parentesi. Es. Roma (RM)."
       },
       {
         "name": "Nazionalita",
         "type": "string",
-        "required": false,
         "description": "Nazionalita del titolare."
       },
       {
         "name": "Data di Rilascio",
         "type": "date",
-        "required": false,
         "description": "Data di rilascio della carta."
       },
       {
         "name": "Data di Scadenza",
         "type": "date",
-        "required": false,
         "description": "Data di scadenza della carta."
-      },
-      {
-        "name": "Comune di Rilascio",
-        "type": "string",
-        "required": false,
-        "description": "Comune o autorita che ha rilasciato la carta."
       },
       {
         "name": "Codice Fiscale",
         "type": "string",
-        "required": true,
         "description": "Codice fiscale italiano, se presente."
       },
       {
         "name": "Indirizzo di Residenza",
         "type": "string",
-        "required": false,
         "description": "Indirizzo di residenza del titolare."
       },
       {
         "name": "MRZ",
         "type": "string",
-        "required": false,
         "description": "Testo della zona a lettura ottica del documento."
-      },
-      {
-        "name": "Immagine Volto",
-        "type": "boolean",
-        "required": false,
-        "description": "Indica se e presente la foto del titolare.",
-        "enum": [true, false]
-      },
-      {
-        "name": "Immagine Firma",
-        "type": "boolean",
-        "required": false,
-        "description": "Indica se e presente l'immagine della firma del titolare.",
-        "enum": [true, false]
       }
     ]
   },
@@ -104,181 +72,151 @@
       {
         "name": "Targa",
         "type": "string",
-        "required": true,
-        "description": "Codice A. Numero di targa del veicolo."
+        "description": "Codice A. Numero di targa del veicolo, spesso in formato AA000AA."
       },
       {
         "name": "Data prima immatricolazione",
         "type": "date",
-        "required": true,
         "description": "Codice B. Data della prima immatricolazione."
       },
       {
         "name": "Marca",
         "type": "string",
-        "required": true,
         "description": "Codice D.1. Marca del veicolo."
       },
       {
         "name": "Tipo veicolo",
         "type": "string",
-        "required": true,
         "description": "Codice D.2. Tipo del veicolo."
       },
       {
         "name": "Denominazione commerciale",
         "type": "string",
-        "required": true,
         "description": "Codice D.3. Denominazione commerciale del veicolo."
       },
       {
         "name": "Numero telaio (VIN)",
         "type": "string",
-        "required": true,
-        "description": "Codice E. Numero di telaio del veicolo (VIN)."
+        "description": "Codice E. Numero di telaio del veicolo (VIN), generalmente una stringa di 17 caratteri."
       },
       {
         "name": "Massa max tecn. ammissibile",
         "type": "number",
-        "required": false,
         "description": "Codice F.1. Massa massima tecnicamente ammissibile."
       },
       {
         "name": "Massa max a carico ammissibile",
         "type": "number",
-        "required": true,
         "description": "Codice F.2. Massa massima ammissibile a carico."
       },
       {
         "name": "Massa max insieme",
         "type": "number",
-        "required": false,
         "description": "Codice F.3. Massa massima dell'insieme veicolare."
       },
       {
         "name": "Massa a vuoto",
         "type": "number",
-        "required": true,
         "description": "Codice G. Massa a vuoto del veicolo in KG."
       },
       {
         "name": "Data immatricolazione (DU corrente)",
         "type": "date",
-        "required": false,
         "description": "Codice I. Data di immatricolazione del DU corrente."
       },
       {
         "name": "Categoria veicolo",
         "type": "string",
-        "required": true,
         "description": "Codice J. Categoria del veicolo."
       },
       {
         "name": "Destinazione e uso",
         "type": "string",
-        "required": false,
-        "description": "Codice J.1. Destinazione e uso del veicolo."
+        "description": "Codice J.1. Destinazione e uso del veicolo. Es. AUTOVETTURA PER TRASPORTO DI PERSONE - USO PROPRIO."
       },
       {
         "name": "Carrozzeria",
         "type": "string",
-        "required": true,
         "description": "Codice J.2. Tipo di carrozzeria."
       },
       {
         "name": "Numero omologazione",
         "type": "string",
-        "required": true,
-        "description": "Codice K. Numero di omologazione."
+        "description": "Codice K. Numero di omologazione, generalmente una stringa di 13 caratteri."
       },
       {
         "name": "Numero assi",
         "type": "integer",
-        "required": true,
         "description": "Codice L. Numero di assi del veicolo."
       },
       {
         "name": "Massa per asse N.1",
         "type": "number",
-        "required": true,
         "description": "Codice N.1. Massa massima sull'asse 1."
       },
       {
         "name": "Massa per asse N.2",
         "type": "number",
-        "required": true,
         "description": "Codice N.2. Massa massima sull'asse 2."
       },
       {
         "name": "Massa per asse N.3",
         "type": "number",
-        "required": false,
         "description": "Codice N.3. Massa massima sull'asse 3."
       },
       {
         "name": "Massa per asse N.4",
         "type": "number",
-        "required": false,
         "description": "Codice N.4. Massa massima sull'asse 4."
       },
       {
         "name": "Massa per asse N.5",
         "type": "number",
-        "required": false,
         "description": "Codice N.5. Massa massima sull'asse 5."
       },
       {
         "name": "Massa rimorchiabile (frenato)",
         "type": "number",
-        "required": true,
         "description": "Codice O.1. Massa rimorchiabile con freni."
       },
       {
         "name": "Massa rimorchiabile (non frenato)",
         "type": "number",
-        "required": false,
         "description": "Codice O.2. Massa rimorchiabile senza freni."
       },
       {
         "name": "Cilindrata (cm³)",
         "type": "integer",
-        "required": true,
         "description": "Codice P.1. Cilindrata del motore in cm³."
       },
       {
         "name": "Potenza max (kW)",
         "type": "number",
-        "required": true,
         "description": "Codice P.2. Potenza massima del motore in kW."
       },
       {
         "name": "Tipo combustibile",
         "type": "string",
-        "required": true,
-        "description": "Codice P.3. Tipo di combustibile del veicolo."
+        "description": "Codice P.3. Tipo di combustibile del veicolo, spesso abbreviato con sigle o anche con una sola lettera. Es. BENZINA (B), DIESEL (D), GPL (G), ELETTRICO (E)."
       },
       {
         "name": "Numero motore",
         "type": "string",
-        "required": false,
-        "description": "Codice P.5. Numero del motore."
+        "description": "Codice P.5. Numero del motore, spesso in formato 000A0000."
       },
       {
         "name": "Rapporto potenza/peso (moto)",
         "type": "number",
-        "required": false,
         "description": "Codice Q. Rapporto tra potenza e peso per motoveicoli."
       },
       {
         "name": "Posti a sedere",
         "type": "integer",
-        "required": true,
         "description": "Codice S.1. Numero di posti a sedere."
       },
       {
         "name": "Posti in piedi",
         "type": "integer",
-        "required": false,
         "description": "Codice S.2. Numero di posti in piedi."
       }
     ]

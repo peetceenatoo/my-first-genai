@@ -23,15 +23,13 @@ REGOLE CRITICHE DI FORMATTAZIONE JSON:
 - Stringhe vuote: "" (due virgolette, non null)
 
 REGOLE DI ESTRAZIONE:
-- Le chiavi nel JSON devono essere SOLO il nome del campo, senza tipo né (required).
+- Le chiavi nel JSON devono essere SOLO il nome del campo, senza tipo.
 - Le chiavi devono corrispondere esattamente ai nomi dei campi forniti nello schema.
-- Se un campo required non e leggibile o non presente, restituisci "" per quel campo (mai null) e non inventare nulla.
-- Usa una stringa vuota quando un valore manca o non è leggibile.
+- Se un campo non è leggibile o non è presente, restituisci "" per quel campo (mai null), e non inventare nulla.
 - Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore, non nella struttura JSON.
 - Non inferire né inventare valori non presenti nel documento.
 - I valori possono comparire senza etichetta nell'immagine: cerca il valore stesso in base al suo significato, non solo l'etichetta.
 """
-
 
 def _image_to_data_uri(image: Image.Image) -> str:
     buf = io.BytesIO()
@@ -61,14 +59,13 @@ def _align_metadata(payload: dict[str, Any], fields: list[SchemaField]) -> dict[
 
 
 def _render_field(field: SchemaField) -> str:
-    required = "required" if field.required else "optional"
     enum_hint = (
         f" enum: {', '.join(str(value) for value in field.enum_values)}"
         if field.enum_values
         else ""
     )
     description = f" - {field.description}" if field.description else ""
-    return f"- {field.name} ({field.field_type}, {required}){enum_hint}{description}"
+    return f"- {field.name} ({field.field_type}){enum_hint}{description}"
 
 
 def extract_metadata(
