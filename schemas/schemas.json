@@ -6,7 +6,7 @@
       {
         "name": "Numero Documento",
         "type": "string",
-        "description": "Numero univoco della carta d'identita, generalmente in formato AA00000AA."
+        "description": "Numero univoco della carta d'identita. Se presente, necessariamente in formato AA00000AA."
       },
       {
         "name": "Cognome",
@@ -51,7 +51,7 @@
       {
         "name": "Codice Fiscale",
         "type": "string",
-        "description": "Codice fiscale italiano, se presente."
+        "description": "Codice fiscale italiano. Se presente, necessariamente in formato AAAAAA00A00A000A)."
       },
       {
         "name": "Indirizzo di Residenza",
