@@ -7,6 +7,7 @@ import json
 from datetime import datetime
 import html
 from pathlib import Path
+import pandas as pd
 import streamlit as st
 
 from src.config import load_config
@@ -236,11 +237,27 @@ if selected_doc:
                 }
             )
 
+    fields_df = pd.DataFrame(field_rows)
+
+    def _gray_none_fields(row: pd.Series) -> list[str]:
+        styles = [""] * len(row)
+        value = row.get("value")
+        is_none_value = isinstance(value, str) and value.strip().lower() == "none"
+        if not is_none_value:
+            return styles
+
+        muted_style = "color: #7f8791; background-color: #f5f6f8;"
+        for col_name in ("value", "confidence"):
+            if col_name in row.index:
+                styles[row.index.get_loc(col_name)] = muted_style
+        return styles
+
+    styled_fields_df = fields_df.style.apply(_gray_none_fields, axis=1)
+
     field_column_config = {
         "field": st.column_config.TextColumn("Field", width="small"),
         "value": st.column_config.TextColumn("Value", width="large"),
     }
-    disabled_columns = ["field", "value"]
     if confidence_enabled:
         field_column_config["confidence"] = st.column_config.NumberColumn(
             "Confidence", width="small"
@@ -248,19 +265,15 @@ if selected_doc:
         field_column_config["status"] = st.column_config.TextColumn(
             "Flag", width="small"
         )
-        disabled_columns.extend(["confidence", "status"])
 
     st.markdown(
         "<div class='extractly-detail-subtitle'>Extracted fields</div>",
         unsafe_allow_html=True,
     )
-    st.data_editor(
-        field_rows,
-        num_rows="fixed",
+    st.dataframe(
+        styled_fields_df,
         width="stretch",
         column_config=field_column_config,
-        disabled=disabled_columns,
-        key=f"field_editor_{selected_doc_name}",
     )
 
     if selected_doc.get("warnings"):
