@@ -42,8 +42,10 @@ docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 ### Extraction Pipeline
 - Input documents are pre-processed.
 - **OCR is performed with AWS Textract:**
-  - Primary: `AnalyzeDocument` with `FORMS`, `TABLES`, and `QUERIES` generated dynamically from schema field names for targeted extraction.
-  - Fallback: `DetectDocumentText` for OCR-only mode if AnalyzeDocument fails for any reason.
+  - Frontend toggle `Improve OCR` controls OCR mode.
+  - `Improve OCR = ON`: `AnalyzeDocument` with `QUERIES` generated from all schema fields.
+  - `Improve OCR = OFF`: `DetectDocumentText` only.
+  - If `Improve OCR = ON` and AnalyzeDocument fails, pipeline falls back to DetectDocumentText.
   - For multi-page files, OCR runs page by page, then all results are aggregated into a `TextractDocument`.
 - **Metadata extraction from structured context:**
   - The `TextractDocument` is serialized into a rich prompt context for Bedrock models.
