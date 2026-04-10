@@ -246,7 +246,7 @@ if selected_doc:
         if not is_none_value:
             return styles
 
-        muted_style = "color: #7f8791; background-color: #f5f6f8;"
+        muted_style = "color: #7f8791;"
         for col_name in ("value", "confidence"):
             if col_name in row.index:
                 styles[row.index.get_loc(col_name)] = muted_style
