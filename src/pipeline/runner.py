@@ -40,7 +40,8 @@ def run_pipeline(
     vote_runs = 7 if options.compute_confidence else 3
 
     total_docs = len(files)
-    total_steps = max(total_docs * 2, 1)
+    # OCR + schema + extraction for each document, plus one final save step.
+    total_steps = max(total_docs * 3 + 1, 1)
     current_step = 0
 
     def report_progress(message: str) -> None:
@@ -168,5 +169,6 @@ def run_pipeline(
         documents=documents,
         compute_confidence=options.compute_confidence,
     )
+    report_progress("Finalizing run")
     run_store.save(run)
     return run
