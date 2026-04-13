@@ -85,14 +85,16 @@ def extract_metadata(
         {"role": "user", "content": content},
     ]
 
-    user_text = content[0]["text"] if content else ""
     if log:
         print(
             "===== EXTRACTION PROMPT =====\n"
             "[SYSTEM]\n"
             f"{DEFAULT_EXTRACTION_PROMPT.strip()}\n\n"
             "[USER]\n"
-            f"{user_text.strip()}\n"
+            "## SCHEMA\n"
+            f"{field_lines}\n\n"
+            "## OUTPUT OCR\n"
+            "Contenuto OCR passato al prompt (non stampato qui: vedi logging OCR).\n"
             "===== END EXTRACTION PROMPT =====",
             flush=True,
         )
