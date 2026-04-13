@@ -27,7 +27,7 @@
       {
         "name": "Targa",
         "type": "string",
-        "description": "Cod. (A) Targa del veicolo. Formato tipico AA000AA, senza spazi."
+        "description": "Cod. (A) Targa del veicolo. Formato tipico AA000AA, senza spazi. Di solito appare più volte nel documento."
       },
       {
         "name": "Data prima immatricolazione",
