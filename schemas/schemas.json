@@ -27,7 +27,7 @@
       {
         "name": "Targa",
         "type": "string",
-        "description": "Cod. (A) Targa del veicolo come codice alfanumerico. Formato tipico AA000AA, non contiene spazi. Appare più volte nel documento."
+        "description": "Cod. (A) Targa del veicolo. Codice alfanumerico ESATTAMENTE di 7 caratteri nel formato AA000AA, SENZA spazi. Ignora codici con spazi o formati diversi. La targa compare più volte, ed è identica in tutte le occorrenze."
       },
       {
         "name": "Data prima immatricolazione",
