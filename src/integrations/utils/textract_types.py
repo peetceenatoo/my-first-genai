@@ -15,14 +15,6 @@ class TextractForm:
 
 
 @dataclass
-class TextractQuery:
-    """Query result from QUERIES feature."""
-    query_text: str
-    answer: str
-    confidence: float = 1.0
-
-
-@dataclass
 class TextractDocument:
     """
     Canonical intermediate representation of Textract response.
@@ -33,9 +25,8 @@ class TextractDocument:
 
     # Extracted structured data
     forms: list[TextractForm] = field(default_factory=list)
-    queries: list[TextractQuery] = field(default_factory=list)
 
-    # Canonical textual projection of OCR output - complements forms/queries and is always part of the OCR output model.
+    # Canonical textual projection of OCR output.
     plain_text: str = ""
 
     # Page information
@@ -50,7 +41,6 @@ class TextractDocument:
         """Convert to dictionary for JSON serialization."""
         return {
             "forms": [asdict(f) for f in self.forms],
-            "queries": [asdict(q) for q in self.queries],
             "plain_text": self.plain_text,
             "page_number": self.page_number,
             "num_pages": self.num_pages,
@@ -65,7 +55,7 @@ class TextractDocument:
     def to_context_string(self) -> str:
         """
         Generate a human-readable context string.
-        Structure: Forms, Query Results, Canonical OCR Text.
+        Structure: Forms, Canonical OCR Text.
         """
         parts: list[str] = []
 
@@ -74,13 +64,6 @@ class TextractDocument:
             for form in self.forms:
                 conf = f" [confidence: {form.value_confidence:.1%}]" if form.value_confidence < 1.0 else ""
                 parts.append(f"  {form.key}: {form.value}{conf}")
-            parts.append("")
-
-        if self.queries:
-            parts.append("## QUERY RESULTS (Field Lookup)")
-            for query in self.queries:
-                conf = f" [confidence: {query.confidence:.1%}]" if query.confidence < 1.0 else ""
-                parts.append(f"  {query.query_text}: {query.answer}{conf}")
             parts.append("")
 
         if self.plain_text:

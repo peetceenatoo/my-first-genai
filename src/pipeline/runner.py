@@ -107,12 +107,9 @@ def run_pipeline(
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        # Use only first 15 field names as Textract queries.
-        query_strings = [field.name for field in default_schema.fields[:15]]
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
         textract_doc = run_ocr(
             images_for_llm,
-            queries=query_strings,
             improve_ocr=options.improve_ocr,
             ocr_payload=payload,
         )

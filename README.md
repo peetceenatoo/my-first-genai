@@ -43,7 +43,7 @@ docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 - Input documents are pre-processed.
 - **OCR is performed with AWS Textract:**
   - Frontend toggle `Improve OCR` controls OCR mode.
-  - `Improve OCR = ON`: `AnalyzeDocument` with `QUERIES` generated from all schema fields.
+  - `Improve OCR = ON`: `AnalyzeDocument`.
   - `Improve OCR = OFF`: `DetectDocumentText` only.
   - If `Improve OCR = ON` and AnalyzeDocument fails, pipeline falls back to DetectDocumentText.
   - For multi-page files, OCR runs page by page, then all results are aggregated into a `TextractDocument`.

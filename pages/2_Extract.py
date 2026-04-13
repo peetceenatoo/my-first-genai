@@ -57,7 +57,7 @@ with right:
     improve_ocr = st.toggle(
         "Improve OCR",
         value=True,
-        help="On: AnalyzeDocument + QUERIES. Off: DetectDocumentText only.",
+        help="On: AnalyzeDocument. Off: DetectDocumentText only.",
     )
 
     selected_schema_name = st.selectbox(

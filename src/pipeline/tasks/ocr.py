@@ -10,7 +10,6 @@ from src.integrations.utils.textract_types import TextractDocument
 
 def run_ocr(
     images: list[Image.Image],
-    queries: list[str] | None = None,
     *,
     improve_ocr: bool = True,
     ocr_payload: dict[str, Any] | None = None,
@@ -27,8 +26,6 @@ def run_ocr(
             [
                 *image_lines,
                 f"Improve OCR: {improve_ocr}",
-                "Queries:" if queries else "Queries: none",
-                *([f"  - {query}" for query in queries] if queries else []),
             ]
         )
         + "\n===== END OCR INPUT =====",
@@ -54,7 +51,7 @@ def run_ocr(
         documents: list[TextractDocument] = []
 
         for page_num, image in enumerate(images, start=1):
-            doc = detect_text(image, queries=queries, improve_ocr=improve_ocr)
+            doc = detect_text(image, improve_ocr=improve_ocr)
             doc.page_number = page_num
             doc.num_pages = len(images)
             documents.append(doc)
@@ -68,7 +65,6 @@ def run_ocr(
         for doc in documents:
             aggregated.raw_blocks.extend(doc.raw_blocks)
             aggregated.forms.extend(doc.forms)
-            aggregated.queries.extend(doc.queries)
             if doc.plain_text:
                 if aggregated.plain_text:
                     aggregated.plain_text += "\n---PAGE BREAK---\n" + doc.plain_text
@@ -93,23 +89,6 @@ def run_ocr(
                 ]
             )
             if aggregated.forms
-            else "(none)"
-        )
-        + "\n\n"
-        + "## QUERY RESULTS\n"
-        + (
-            "\n".join(
-                [
-                    f"  {query.query_text}: {query.answer}"
-                    + (
-                        f" [confidence: {query.confidence:.1%}]"
-                        if query.confidence < 1.0
-                        else ""
-                    )
-                    for query in aggregated.queries
-                ]
-            )
-            if aggregated.queries
             else "(none)"
         )
         + "\n\n"

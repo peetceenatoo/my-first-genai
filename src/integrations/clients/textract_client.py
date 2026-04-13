@@ -11,7 +11,6 @@ from src.config import load_config
 from src.integrations.utils.textract_types import (
     TextractDocument,
     TextractForm,
-    TextractQuery,
 )
 
 
@@ -30,39 +29,6 @@ def _extract_lines(blocks: list[dict]) -> str:
             if text:
                 lines.append(text)
     return "\n".join(lines)
-
-def _extract_queries_from_response(response: dict) -> list[TextractQuery]:
-    """Extract query results from AnalyzeDocument QUERIES response."""
-    queries: list[TextractQuery] = []
-    
-    query_blocks = [b for b in response.get("Blocks", []) if b.get("BlockType") == "QUERY"]
-    for qblock in query_blocks:
-        query_text = qblock.get("Query", {}).get("Text", "")
-        confidence = qblock.get("Confidence", 100)
-        answer = ""
-        
-        # Find answer via ANSWER relationship
-        for rel in qblock.get("Relationships", []):
-            if rel.get("Type") == "ANSWER":
-                answer_ids = rel.get("Ids", [])
-                answer_texts = []
-                for block in response.get("Blocks", []):
-                    if block.get("Id") in answer_ids:
-                        text = block.get("Text", "")
-                        if text:
-                            answer_texts.append(text)
-
-                answer = " ".join(answer_texts) if answer_texts else ""
-                break
-
-        queries.append(TextractQuery(
-            query_text=query_text,
-            answer=answer,
-            confidence=confidence,
-        ))
-    
-    return queries
-
 
 def _extract_forms_from_response(response: dict) -> list[TextractForm]:
     """Extract key-value form pairs from AnalyzeDocument FORMS response."""
@@ -181,7 +147,6 @@ def _extract_text_from_analyze(blocks: list[dict]) -> str:
 
 def detect_text(
     image: Image.Image,
-    queries: list[str] | None = None,
     *,
     improve_ocr: bool = True,
 ) -> TextractDocument:
@@ -193,11 +158,10 @@ def detect_text(
     
     Args:
         image: PIL Image to process
-        queries: List of query strings to extract (e.g., ["Targa", "Numero telaio"])
-        improve_ocr: If True uses AnalyzeDocument + QUERIES, otherwise DetectDocumentText only
+        improve_ocr: If True uses AnalyzeDocument, otherwise DetectDocumentText only
     
     Returns:
-        TextractDocument with query results and plain text
+        TextractDocument with forms and plain text
     """
     config = load_config()
     client = boto3.client(
@@ -214,13 +178,11 @@ def detect_text(
 
     try:
         if improve_ocr:
-            # Use AnalyzeDocument + QUERIES for richer OCR guidance.
+            # Use AnalyzeDocument for richer OCR guidance.
             kwargs: dict[str, object] = {
                 "Document": {"Bytes": document_bytes},
-                "FeatureTypes": ["FORMS", "QUERIES"],
+                "FeatureTypes": ["FORMS"],
             }
-            if queries:
-                kwargs["QueriesConfig"] = {"Queries": [{"Text": q} for q in queries]}
 
             response = client.analyze_document(**kwargs)
             blocks = response.get("Blocks", [])
@@ -232,10 +194,6 @@ def detect_text(
                 )
 
             try:
-                query_results = _extract_queries_from_response(response) if queries else []
-            except Exception:
-                query_results = []
-            try:
                 form_results = _extract_forms_from_response(response)
             except Exception:
                 form_results = []
@@ -244,7 +202,6 @@ def detect_text(
             return TextractDocument(
                 raw_blocks=blocks,
                 forms=form_results,
-                queries=query_results,
                 plain_text=plain_text,
                 textract_api_used="AnalyzeDocument",
             )
