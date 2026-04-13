@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-import base64
-import io
 import json
 import re
 from typing import Any
-
-from PIL import Image
 
 from src.config import load_config
 from src.domain.utils.schema_types import SchemaField
@@ -14,28 +10,24 @@ from src.integrations.clients.bedrock_client import get_chat_completion
 from src.integrations.utils.textract_types import TextractDocument
 
 
-DEFAULT_EXTRACTION_PROMPT = """Estrai metadati strutturati dai documenti.
-Restituisci SOLO JSON valido (niente markdown, nessun commento, nessun testo extra).
+DEFAULT_EXTRACTION_PROMPT = \
+"""
+Estrai metadati strutturati dal documento. Restituisci SOLO JSON valido (niente markdown, nessun commento, nessun testo extra).
 
 REGOLE CRITICHE DI FORMATTAZIONE JSON:
-- Stringhe (type=string, date): SEMPRE racchiuse tra virgolette. Ad esempio "Targa": "AA00000" e "Data": "31.07.2002"
-- Numeri (type=number, integer): è fondamentale che contengano SOLO cifre da 0 a 9, SENZA nessun altro tipo di carattere come virgole, lettere o slash. Ad esempio "Massa": 1985 va bene. Qualora un numero contenga caratteri non numerici (ad esempio "11P2" o "1,385"), deve essere trattato come stringa e quindi racchiuso tra virgolette, come "11P2", "1,385" o "1/2".
+- Valori stringa (type=string, date): SEMPRE racchiuse tra virgolette.
+- Numeri (type=number, integer): è fondamentale che contengano SOLO cifre da 0 a 9, SENZA nessun altro tipo di carattere come virgolette, lettere o slash.
+- Attieniti al tipo di campo indicato nello schema JSON per decidere se restituire un numero o una stringa.
 - Stringhe vuote: "" (due virgolette, non null)
+- Numeri vuoti: null (senza virgolette)
 
 REGOLE DI ESTRAZIONE:
-- Le chiavi nel JSON devono essere SOLO il nome del campo, senza tipo.
-- Le chiavi devono corrispondere esattamente ai nomi dei campi forniti nello schema.
-- Se un campo non è leggibile o non è presente, restituisci "" per quel campo (mai null), e non inventare nulla.
-- Mantieni formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore, non nella struttura JSON.
-- Non inferire né inventare valori non presenti nel documento. Limitati a estrarli dal testo estratto, non dagli schemi nè dalle regole.
-- I valori possono comparire senza etichetta nell'immagine: cerca il valore stesso in base al suo significato, non solo l'etichetta.
+- Le chiavi JSON devono corrispondere esattamente e soltanto ai nomi dei campi forniti nello schema.
+- Rispetta la formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore.
+- Non inferire né inventare valori non presenti nel documento: non inferire informazione nè dagli schemi, nè dalle regole.
+- Alcuni valori potrebbero non essere presenti nel documento. Non cercare di ricavarli se non esplicitamente presenti.
+- Alcuni valori potrebbero comparire nell'immagine senza etichetta del campo: cerca un valore anche se non è accompagnato dalla sua etichetta.
 """
-
-def _image_to_data_uri(image: Image.Image) -> str:
-    buf = io.BytesIO()
-    image.save(buf, format="PNG")
-    return f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
-
 
 def _safe_json(text: str) -> dict[str, Any]:
     candidate = text.strip()
@@ -69,57 +61,51 @@ def _render_field(field: SchemaField) -> str:
 
 
 def extract_metadata(
-    images: list[Image.Image],
     fields: list[SchemaField],
     *,
-    ocr_text: str | None = None,
-    textract_document: TextractDocument | None = None,
+    textract_document: TextractDocument,
+    log: bool = True,
 ) -> dict[str, Any]:
     config = load_config()
 
     field_lines = "\n".join(_render_field(field) for field in fields)
-    instructions = (
-        "Restituisci un oggetto JSON con chiavi che corrispondono esattamente ai nomi dei campi."
-    )
 
     parts = [
-        instructions,
-        "Campi:",
+        "## SCHEMA",
         field_lines,
+        "",
+        "## OUTPUT OCR",
+        textract_document.to_context_string(),
     ]
-    
-    # Use TextractDocument if available (preferred), otherwise fall back to plain text or images
-    if textract_document:
-        # Serialize the canonical TextractDocument into a rich context
-        parts.append("")
-        parts.append("## DOCUMENTO STRUTTURATO ESTRATTO")
-        parts.append(textract_document.to_context_string())
-        # Also include metadata
-        parts.append("")
-        parts.append(f"Motore Textract: {textract_document.textract_api_used}")
-        if textract_document.extraction_confidence is not None:
-            parts.append(f"Confidence: {textract_document.extraction_confidence:.1%}")
-    elif ocr_text:
-        # Legacy: plain text OCR
-        parts.append("")
-        parts.append("## TESTO OCR")
-        parts.append(ocr_text)
 
     content = [{"type": "text", "text": "\n".join(parts)}]
-
-    # Use only extracted text if available; fallback to images if no OCR data provided
-    if not textract_document and not ocr_text and images:
-        for image in images:
-            content.append(
-                {"type": "image_url", "image_url": {"url": _image_to_data_uri(image)}}
-            )
 
     messages = [
         {"role": "system", "content": DEFAULT_EXTRACTION_PROMPT},
         {"role": "user", "content": content},
     ]
 
+    user_text = content[0]["text"] if content else ""
+    if log:
+        print(
+            "===== EXTRACTION PROMPT =====\n"
+            "[SYSTEM]\n"
+            f"{DEFAULT_EXTRACTION_PROMPT.strip()}\n\n"
+            "[USER]\n"
+            f"{user_text.strip()}\n"
+            "===== END EXTRACTION PROMPT =====",
+            flush=True,
+        )
+
     response = get_chat_completion(messages, model=config.extract_model)
+
+    if log:
+        print(
+            "===== EXTRACTION RESPONSE =====\n"
+            f"{response.strip() or '(empty)'}\n"
+            "===== END EXTRACTION RESPONSE =====",
+            flush=True,
+        )
 
     payload = _safe_json(response)
 

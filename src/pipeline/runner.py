@@ -9,7 +9,6 @@ from typing import Any, Callable
 
 from PIL import Image
 
-from src.integrations.utils.textract_types import TextractDocument
 from src.domain.utils.schema_types import DocumentSchema
 from src.domain.stores.run_store import ExtractionRun, RunDocument, RunStore
 from src.pipeline.tasks.extraction import extract_metadata
@@ -20,7 +19,6 @@ from src.pipeline.tasks.ocr import run_ocr
 class PipelineOptions:
     compute_confidence: bool = False
     improve_ocr: bool = True
-
 
 def run_pipeline(
     *,
@@ -112,21 +110,12 @@ def run_pipeline(
         # Extract OCR with queries based on all schema fields when enhancement is enabled.
         query_strings = [field.name for field in default_schema.fields]
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
-        textract_doc = payload.get("textract_document")  # in case pre-extracted
-        provided_ocr_text = payload.get("ocr_text")
-        if textract_doc is None:
-            if provided_ocr_text is not None:
-                textract_doc = TextractDocument(
-                    plain_text=str(provided_ocr_text),
-                    num_pages=len(images_for_llm),
-                    textract_api_used="InputText",
-                )
-            else:
-                textract_doc = run_ocr(
-                    images_for_llm,
-                    queries=query_strings,
-                    improve_ocr=options.improve_ocr,
-                )
+        textract_doc = run_ocr(
+            images_for_llm,
+            queries=query_strings,
+            improve_ocr=options.improve_ocr,
+            ocr_payload=payload,
+        )
         doc_type = default_schema.name
         report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
 
@@ -139,9 +128,9 @@ def run_pipeline(
             votes: list[dict[str, Any]] = []
             for _ in range(vote_runs):
                 extraction = extract_metadata(
-                    images_for_llm,
                     default_schema.fields,
                     textract_document=textract_doc,
+                    log=(len(votes) == 0),
                 )
                 vote_payload = extraction.get("metadata", {})
                 votes.append(vote_payload)
