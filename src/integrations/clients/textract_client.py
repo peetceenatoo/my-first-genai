@@ -147,6 +147,7 @@ def detect_text(
     image: Image.Image,
     *,
     improve_ocr: bool = True,
+    log: bool = True,
 ) -> TextractDocument:
     """
     Extract text and structure from image using AWS Textract AnalyzeDocument (primary)
@@ -229,11 +230,12 @@ def detect_text(
     except Exception as exc:
         # When AnalyzeDocument fails in improve mode, fallback to DetectDocumentText.
         if improve_ocr:
-            print(
-                "AnalyzeDocument failed, falling back to DetectDocumentText: "
-                f"{exc.__class__.__name__}: {exc}",
-                flush=True,
-            )
+            if log:
+                print(
+                    "AnalyzeDocument failed, falling back to DetectDocumentText: "
+                    f"{exc.__class__.__name__}: {exc}",
+                    flush=True,
+                )
             response = client.detect_document_text(Document={"Bytes": document_bytes})
             blocks = response.get("Blocks", [])
             if not isinstance(blocks, list):

@@ -9,6 +9,7 @@ from typing import Any, Callable
 
 from PIL import Image
 
+from src.config import load_config
 from src.domain.utils.schema_types import DocumentSchema
 from src.domain.stores.run_store import ExtractionRun, RunDocument, RunStore
 from src.pipeline.tasks.extraction import extract_metadata
@@ -31,6 +32,9 @@ def run_pipeline(
 ) -> ExtractionRun:  # sourcery skip: low-code-quality
     if default_schema is None:
         raise ValueError("A schema must be provided to run extraction.")
+
+    config = load_config()
+    log = config.enable_logging
 
     run_id = run_store.create_run_id()
     documents: list[RunDocument] = []
@@ -111,6 +115,7 @@ def run_pipeline(
             images_for_llm,
             improve_ocr=options.improve_ocr,
             ocr_payload=payload,
+            log=log,
         )
         doc_type = default_schema.name
         report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
@@ -126,7 +131,7 @@ def run_pipeline(
                 extraction = extract_metadata(
                     default_schema.fields,
                     textract_document=textract_doc,
-                    log=(False)
+                    log=log,
                 )
                 vote_payload = extraction.get("metadata", {})
                 votes.append(vote_payload)

@@ -96,7 +96,7 @@ def extract_metadata(
             "## SCHEMA\n"
             f"{field_lines}\n\n"
             "## OUTPUT OCR\n"
-            "Contenuto OCR passato al prompt (non stampato qui: vedi logging OCR).\n"
+            "Contenuto OCR passato al prompt.\n"
             "===== END EXTRACTION PROMPT =====",
             flush=True,
         )

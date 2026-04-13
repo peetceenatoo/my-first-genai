@@ -13,6 +13,7 @@ def run_ocr(
     *,
     improve_ocr: bool = True,
     ocr_payload: dict[str, Any] | None = None,
+    log: bool = True,
 ) -> TextractDocument:
     image_lines = [f"Pages: {len(images)}"]
     if images:
@@ -20,17 +21,18 @@ def run_ocr(
         for page_number, image in enumerate(images, start=1):
             image_lines.append(f"  Page {page_number}: {image.width}x{image.height}")
 
-    print(
-        "===== OCR INPUT =====\n"
-        + "\n".join(
-            [
-                *image_lines,
-                f"Improve OCR: {improve_ocr}",
-            ]
+    if log:
+        print(
+            "===== OCR INPUT =====\n"
+            + "\n".join(
+                [
+                    *image_lines,
+                    f"Improve OCR: {improve_ocr}",
+                ]
+            )
+            + "\n===== END OCR INPUT =====",
+            flush=True,
         )
-        + "\n===== END OCR INPUT =====",
-        flush=True,
-    )
 
     payload_textract_document = ocr_payload.get("textract_document") if ocr_payload else None
     payload_ocr_text = ocr_payload.get("ocr_text") if ocr_payload else None
@@ -51,7 +53,7 @@ def run_ocr(
         documents: list[TextractDocument] = []
 
         for page_num, image in enumerate(images, start=1):
-            doc = detect_text(image, improve_ocr=improve_ocr)
+            doc = detect_text(image, improve_ocr=improve_ocr, log=log)
             doc.page_number = page_num
             doc.num_pages = len(images)
             documents.append(doc)
@@ -71,32 +73,33 @@ def run_ocr(
                 else:
                     aggregated.plain_text = doc.plain_text
 
-    print(
-        "===== OCR OUTPUT =====\n"
-        f"Textract API: {aggregated.textract_api_used}\n"
-        f"Pages: {aggregated.num_pages}\n"
-        "## FORMS\n"
-        + (
-            "\n".join(
-                [
-                    f"  {form.key}: {form.value}"
-                    + (
-                        f" [confidence: {form.value_confidence:.1%}]"
-                        if form.value_confidence < 1.0
-                        else ""
-                    )
-                    for form in aggregated.forms
-                ]
+    if log:
+        print(
+            "===== OCR OUTPUT =====\n"
+            f"Textract API: {aggregated.textract_api_used}\n"
+            f"Pages: {aggregated.num_pages}\n"
+            "## FORMS\n"
+            + (
+                "\n".join(
+                    [
+                        f"  {form.key}: {form.value}"
+                        + (
+                            f" [confidence: {form.value_confidence:.1%}]"
+                            if form.value_confidence < 1.0
+                            else ""
+                        )
+                        for form in aggregated.forms
+                    ]
+                )
+                if aggregated.forms
+                else "(none)"
             )
-            if aggregated.forms
-            else "(none)"
+            + "\n\n"
+            + "## OCR TEXT (CANONICAL)\n"
+            + (aggregated.plain_text or "(empty)")
+            + "\n"
+            "===== END OCR OUTPUT =====",
+            flush=True,
         )
-        + "\n\n"
-        + "## OCR TEXT (CANONICAL)\n"
-        + (aggregated.plain_text or "(empty)")
-        + "\n"
-        "===== END OCR OUTPUT =====",
-        flush=True,
-    )
 
     return aggregated
