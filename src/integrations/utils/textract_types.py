@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import Any
-import json
 
 
 @dataclass
@@ -10,9 +9,7 @@ class TextractForm:
     """Key-value pair extracted from forms."""
     key: str
     value: str
-    key_confidence: float = 1.0
     value_confidence: float = 1.0
-
 
 @dataclass
 class TextractDocument:
@@ -35,22 +32,6 @@ class TextractDocument:
 
     # Metadata
     textract_api_used: str = "AnalyzeDocument"  # or DetectDocumentText
-    extraction_confidence: float | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return {
-            "forms": [asdict(f) for f in self.forms],
-            "plain_text": self.plain_text,
-            "page_number": self.page_number,
-            "num_pages": self.num_pages,
-            "textract_api_used": self.textract_api_used,
-            "extraction_confidence": self.extraction_confidence,
-        }
-
-    def to_json(self) -> str:
-        """Convert to JSON string (raw_blocks excluded for readability)."""
-        return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
 
     def to_context_string(self) -> str:
         """

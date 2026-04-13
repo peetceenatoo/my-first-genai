@@ -115,4 +115,4 @@ def extract_metadata(
 
     metadata = _align_metadata(payload, fields)
 
-    return {"metadata": metadata, "confidence": {}}
+    return {"metadata": metadata}

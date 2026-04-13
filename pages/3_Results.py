@@ -59,6 +59,18 @@ def _boolean_presence_label(value: object) -> str:
         return "Yes" if value else "No"
     return str(value)
 
+
+def _document_payload(doc: dict) -> dict:
+    corrected = doc.get("corrected")
+    if isinstance(corrected, dict):
+        return corrected
+
+    extracted = doc.get("extracted")
+    if isinstance(extracted, dict):
+        return extracted
+
+    return {}
+
 section_spacer("lg")
 section_title("Run summary")
 started_at_label = "—"
@@ -106,23 +118,14 @@ else:
 review_threshold = 0.0
 only_needs_review = False
 if confidence_enabled:
-    review_threshold = st.slider(
-        "Needs review threshold",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.00,
-        step=0.05,
-        help="Flags documents with low field confidence.",
-    )
+    review_threshold = 0.5
     only_needs_review = st.checkbox("Show only needs review", value=False)
 doc_rows = []
 doc_rows.extend(
     (
         {
             "filename": doc.get("filename"),
-            "document_type": (
-                doc.get("document_type_corrected") or doc.get("document_type") or "—"
-            ),
+            "document_type": doc.get("document_type") or "—",
             "warnings": len(doc.get("warnings", [])),
             "errors": len(doc.get("errors", [])),
         }
@@ -173,20 +176,7 @@ selected_doc = next(
 )
 
 if selected_doc:
-    doc_type_current = (
-        selected_doc.get("document_type_corrected")
-        or selected_doc.get("document_type")
-        or ""
-    )
-    original_type = selected_doc.get("document_type_original") or selected_doc.get(
-        "document_type"
-    )
-    if original_type and original_type != doc_type_current:
-        st.caption(f"Original: {original_type}")
-
-    corrected_payload = selected_doc.get("corrected") or selected_doc.get(
-        "extracted", {}
-    )
+    corrected_payload = _document_payload(selected_doc)
     field_confidence = selected_doc.get("field_confidence", {}) or {}
 
     if confidence_enabled:
@@ -285,24 +275,18 @@ csv_buffer = io.StringIO()
 fieldnames = {
     "filename",
     "document_type",
-    "document_type_original",
-    "document_type_corrected",
 }
 for doc in documents:
-    fieldnames.update(doc.get("corrected", {}).keys())
+    fieldnames.update(_document_payload(doc).keys())
 
 writer = csv.DictWriter(csv_buffer, fieldnames=sorted(fieldnames))
 writer.writeheader()
 for doc in documents:
-    doc_type_original = doc.get("document_type_original", doc.get("document_type"))
-    doc_type_corrected = doc.get("document_type_corrected", doc.get("document_type"))
     row = {
         "filename": doc.get("filename"),
-        "document_type": doc_type_corrected,
-        "document_type_original": doc_type_original,
-        "document_type_corrected": doc_type_corrected,
+        "document_type": doc.get("document_type"),
     }
-    row |= doc.get("corrected", {})
+    row |= _document_payload(doc)
     writer.writerow(row)
 
 st.download_button(

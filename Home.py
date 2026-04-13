@@ -26,8 +26,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# section_spacer("md")
-
 cta_cols = st.columns([3, 2, 2, 3])
 with cta_cols[1]:
     st.page_link("pages/1_Schema_Studio.py", label="🚀 Build a schema", width="stretch")

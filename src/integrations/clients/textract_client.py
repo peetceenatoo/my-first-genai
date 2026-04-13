@@ -47,7 +47,6 @@ def _extract_forms_from_response(response: dict) -> list[TextractForm]:
             continue
 
         key_text_parts: list[str] = []
-        key_confidence = block.get("Confidence", 100)
         value_text = ""
         value_confidence = 1.0
 
@@ -79,7 +78,6 @@ def _extract_forms_from_response(response: dict) -> list[TextractForm]:
                 TextractForm(
                     key=key_text,
                     value=value_text,
-                    key_confidence=key_confidence,
                     value_confidence=value_confidence,
                 )
             )

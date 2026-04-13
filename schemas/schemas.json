@@ -1,7 +1,6 @@
 {
   "Carta d'Identità": {
     "description": "Dati estratti da carta d'identità italiana.",
-    "version": "v1",
     "fields": [
       {
         "name": "Cognome",
@@ -22,7 +21,6 @@
   },
   "Carta di circolazione": {
     "description": "Dati estratti da carta di circolazione italiana.",
-    "version": "v1",
     "fields": [
       {
         "name": "Targa",

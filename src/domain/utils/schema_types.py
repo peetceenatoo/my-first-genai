@@ -41,7 +41,6 @@ class DocumentSchema:
     name: str
     description: str = ""
     fields: list[SchemaField] = field(default_factory=list)
-    version: str = "v1"
 
     def to_dict(self) -> dict[str, Any]:
         return {

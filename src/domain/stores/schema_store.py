@@ -100,14 +100,12 @@ class SchemaStore:
                 continue
 
             description = data.get("description", "")
-            version = data.get("version", "v1")
             raw_fields = data.get("fields", [])
             fields = [self._parse_field(field) for field in raw_fields]
             schemas[name] = DocumentSchema(
                 name=name,
                 description=description,
                 fields=fields,
-                version=version,
             )
         return schemas
 

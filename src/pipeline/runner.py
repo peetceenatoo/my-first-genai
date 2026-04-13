@@ -35,7 +35,6 @@ def run_pipeline(
     run_id = run_store.create_run_id()
     documents: list[RunDocument] = []
 
-    max_pages = None
     vote_runs = 7 if options.compute_confidence else 3
 
     total_docs = len(files)
@@ -105,7 +104,7 @@ def run_pipeline(
     for idx, payload in enumerate(files, start=1):
         filename = payload["name"]
         images: list[Image.Image] = payload["images"]
-        images_for_llm = images if max_pages is None else images[:max_pages]
+        images_for_llm = images
 
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
         textract_doc = run_ocr(
@@ -144,8 +143,6 @@ def run_pipeline(
             RunDocument(
                 filename=filename,
                 document_type=doc_type,
-                document_type_original=doc_type,
-                document_type_corrected=doc_type,
                 extracted=extracted,
                 corrected=extracted.copy(),
                 preview_image=preview_image,
