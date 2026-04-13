@@ -75,7 +75,7 @@
       {
         "name": "Numero omologazione",
         "type": "string",
-        "description": "Cod. (K) Comprende sia il numero di omologazione interno di 13 caratteri alfanumerici, sia il numero di omologazione ufficiale (es. 0A0A0A0A0A0A0 e3*98/14*0000."
+        "description": "Cod. (K) Composto da numero di omologazione interno e numero di omologazione ufficiale (es. 0A0A0A0A0A0A0 e3*98/14*0000). Le due parti possono apparire separate."
       },
       {
         "name": "Numero assi",
