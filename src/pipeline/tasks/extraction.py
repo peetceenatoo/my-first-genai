@@ -32,21 +32,24 @@ REGOLE DI ESTRAZIONE:
 
 FEW_SHOT_EXAMPLE = \
 """
-
 OCR:
-MC 123 A
-(A) AB123CD
-N° AB123CD
-(B) 01.01.2010
-(D.1) FIAT
+PATENTE DI GUIDA
+REPUBBLICA ITALIANA
+N° PATENTE
+(a)
+U12345678
+Numero documento: AB 123 4567
+Altro codice: U12345678
+(a) U12345678
+Nome: MARIO ROSSI
+
+# Schema
+- Numero patente: (a) stringa nel formato A00000000, SENZA spazi.
 
 OUTPUT:
 {
-    "Targa": "AB123CD",
-    "Data prima immatricolazione": "01/01/2010",
-    "Marca": "FIAT"
+  "Numero patente": "U12345678"
 }
-
 """
 
 def _safe_json(text: str) -> dict[str, Any]:
@@ -127,7 +130,7 @@ def extract_metadata(
         print(
             "===== EXTRACTION RESPONSE =====\n"
             f"{response.strip() or '(empty)'}\n"
-            "===== END EXTRACTION RESPONSE =====",
+            "===== END EXTRACTION RESPONSE =====\n\n",
             flush=True,
         )
 
