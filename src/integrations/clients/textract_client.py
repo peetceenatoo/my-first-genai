@@ -10,6 +10,7 @@ from PIL import Image
 from src.config import load_config
 from src.integrations.utils.textract_types import (
     TextractDocument,
+    TextractForm,
     TextractQuery,
 )
 
@@ -62,6 +63,63 @@ def _extract_queries_from_response(response: dict) -> list[TextractQuery]:
         ))
     
     return queries
+
+
+def _extract_forms_from_response(response: dict) -> list[TextractForm]:
+    """Extract key-value form pairs from AnalyzeDocument FORMS response."""
+    forms: list[TextractForm] = []
+    blocks = response.get("Blocks", [])
+    if not isinstance(blocks, list):
+        return forms
+
+    block_map = {block.get("Id"): block for block in blocks if block.get("Id")}
+
+    for block in blocks:
+        if block.get("BlockType") != "KEY_VALUE_SET":
+            continue
+        entity_types = block.get("EntityTypes", [])
+        if "KEY" not in entity_types:
+            continue
+
+        key_text_parts: list[str] = []
+        key_confidence = float(block.get("Confidence", 100)) / 100.0
+        value_text = ""
+        value_confidence = 1.0
+
+        for rel in block.get("Relationships", []):
+            if rel.get("Type") == "CHILD":
+                for child_id in rel.get("Ids", []):
+                    child_block = block_map.get(child_id)
+                    if child_block and child_block.get("Text"):
+                        key_text_parts.append(str(child_block.get("Text", "")))
+
+            if rel.get("Type") == "VALUE":
+                for value_block_id in rel.get("Ids", []):
+                    value_block = block_map.get(value_block_id)
+                    if not value_block:
+                        continue
+                    value_confidence = float(value_block.get("Confidence", 100)) / 100.0
+                    value_text_parts: list[str] = []
+                    for value_rel in value_block.get("Relationships", []):
+                        if value_rel.get("Type") == "CHILD":
+                            for child_id in value_rel.get("Ids", []):
+                                child_block = block_map.get(child_id)
+                                if child_block and child_block.get("Text"):
+                                    value_text_parts.append(str(child_block.get("Text", "")))
+                    value_text = " ".join(value_text_parts).strip()
+
+        key_text = " ".join(key_text_parts).strip()
+        if key_text or value_text:
+            forms.append(
+                TextractForm(
+                    key=key_text,
+                    value=value_text,
+                    key_confidence=key_confidence,
+                    value_confidence=value_confidence,
+                )
+            )
+
+    return forms
 
 
 def _extract_text_from_analyze(blocks: list[dict]) -> str:
@@ -160,7 +218,7 @@ def detect_text(
             # Use AnalyzeDocument + QUERIES for richer OCR guidance.
             kwargs: dict[str, object] = {
                 "Document": {"Bytes": document_bytes},
-                "FeatureTypes": ["QUERIES"],
+                "FeatureTypes": ["FORMS", "QUERIES"],
             }
             if queries:
                 kwargs["QueriesConfig"] = {"Queries": [{"Text": q} for q in queries]}
@@ -175,10 +233,12 @@ def detect_text(
                 )
 
             query_results = _extract_queries_from_response(response) if queries else []
+            form_results = _extract_forms_from_response(response)
             plain_text = _extract_text_from_analyze(blocks)
 
             return TextractDocument(
                 raw_blocks=blocks,
+                forms=form_results,
                 queries=query_results,
                 plain_text=plain_text,
                 textract_api_used="AnalyzeDocument",
