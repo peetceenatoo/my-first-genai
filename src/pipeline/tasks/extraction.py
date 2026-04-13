@@ -27,7 +27,26 @@ REGOLE DI ESTRAZIONE:
 - Non inferire né inventare valori non presenti nel documento: non inferire informazione nè dagli schemi, nè dalle regole.
 - Alcuni valori potrebbero non essere presenti nel documento. Non cercare di ricavarli se non esplicitamente presenti.
 - Alcuni valori potrebbero comparire nell'immagine senza etichetta del campo: cerca un valore anche se non è accompagnato dalla sua etichetta.
-- Quando un campo fa riferimento a un'etichetta (es. "Cod. (A)"), privilegia SEMPRE il valore vicino a quella etichetta rispetto ad altri simili nel documento.
+- Quando un campo fa riferimento a un'etichetta (es. "Cod. (A) AA000AA"), privilegia SEMPRE il valore vicino a quella etichetta.
+"""
+
+FEW_SHOT_EXAMPLE = \
+"""
+
+OCR:
+MC 123 A
+(A) AB123CD
+N° AB123CD
+(B) 01.01.2010
+(D.1) FIAT
+
+OUTPUT:
+{
+    "Targa": "AB123CD",
+    "Data prima immatricolazione": "01/01/2010",
+    "Marca": "FIAT"
+}
+
 """
 
 def _safe_json(text: str) -> dict[str, Any]:
@@ -72,6 +91,8 @@ def extract_metadata(
     field_lines = "\n".join(_render_field(field) for field in fields)
 
     parts = [
+        FEW_SHOT_EXAMPLE,
+        "",
         "## SCHEMA",
         field_lines,
         "",
