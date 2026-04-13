@@ -113,8 +113,9 @@ def extract_metadata(
     if log:
         print(
             "===== EXTRACTION PROMPT =====\n"
-            "[SYSTEM]\n"
-            f"{DEFAULT_EXTRACTION_PROMPT.strip()}\n\n"
+            "[SYSTEM - START]\n"
+            f"{DEFAULT_EXTRACTION_PROMPT}\n"
+            "[SYSTEM - END]\n\n"
             "[USER]\n"
             "## SCHEMA\n"
             f"{field_lines}\n\n"
