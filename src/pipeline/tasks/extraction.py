@@ -30,28 +30,6 @@ REGOLE DI ESTRAZIONE:
 - Quando un campo fa riferimento a un'etichetta (es. "Cod. (A) AA000AA"), privilegia SEMPRE il valore vicino a quella etichetta.
 """
 
-FEW_SHOT_EXAMPLE = \
-"""
-OCR:
-PATENTE DI GUIDA
-REPUBBLICA ITALIANA
-N° PATENTE
-(a)
-U12345678
-Numero documento: AB 123 4567
-Altro codice: U12345678
-(a) U12345678
-Nome: MARIO ROSSI
-
-# Schema
-- Numero patente: (a) stringa nel formato A00000000, SENZA spazi.
-
-OUTPUT:
-{
-  "Numero patente": "U12345678"
-}
-"""
-
 def _safe_json(text: str) -> dict[str, Any]:
     candidate = text.strip()
     fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", candidate, re.S | re.I)
@@ -94,8 +72,6 @@ def extract_metadata(
     field_lines = "\n".join(_render_field(field) for field in fields)
 
     parts = [
-        FEW_SHOT_EXAMPLE,
-        "",
         "## SCHEMA",
         field_lines,
         "",
