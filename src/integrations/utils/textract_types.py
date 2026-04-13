@@ -15,13 +15,6 @@ class TextractForm:
 
 
 @dataclass
-class TextractTable:
-    """Table extracted from document."""
-    headers: list[str] = field(default_factory=list)
-    rows: list[list[str]] = field(default_factory=list)
-
-
-@dataclass
 class TextractQuery:
     """Query result from QUERIES feature."""
     query_text: str
@@ -40,10 +33,9 @@ class TextractDocument:
 
     # Extracted structured data
     forms: list[TextractForm] = field(default_factory=list)
-    tables: list[TextractTable] = field(default_factory=list)
     queries: list[TextractQuery] = field(default_factory=list)
 
-    # Plain text as fallback
+    # Canonical textual projection of OCR output - complements forms/queries and is always part of the OCR output model.
     plain_text: str = ""
 
     # Page information
@@ -58,7 +50,6 @@ class TextractDocument:
         """Convert to dictionary for JSON serialization."""
         return {
             "forms": [asdict(f) for f in self.forms],
-            "tables": [{"headers": t.headers, "rows": t.rows} for t in self.tables],
             "queries": [asdict(q) for q in self.queries],
             "plain_text": self.plain_text,
             "page_number": self.page_number,
@@ -73,8 +64,8 @@ class TextractDocument:
 
     def to_context_string(self) -> str:
         """
-        Generate a human-readable context string for LLM prompt.
-        Structure: Forms, Tables, Query Results, Plain Text.
+        Generate a human-readable context string.
+        Structure: Forms, Query Results, Canonical OCR Text.
         """
         parts: list[str] = []
 
@@ -85,16 +76,6 @@ class TextractDocument:
                 parts.append(f"  {form.key}: {form.value}{conf}")
             parts.append("")
 
-        if self.tables:
-            parts.append("## TABLES")
-            for i, table in enumerate(self.tables, start=1):
-                parts.append(f"Table {i}:")
-                if table.headers:
-                    parts.append(f"  Headers: {' | '.join(table.headers)}")
-                for row in table.rows:
-                    parts.append(f"  {' | '.join(row)}")
-                parts.append("")
-
         if self.queries:
             parts.append("## QUERY RESULTS (Field Lookup)")
             for query in self.queries:
@@ -103,7 +84,7 @@ class TextractDocument:
             parts.append("")
 
         if self.plain_text:
-            parts.append("## PLAIN TEXT")
+            parts.append("## OCR TEXT (CANONICAL)")
             parts.append(self.plain_text)
 
         return "\n".join(parts).strip()
