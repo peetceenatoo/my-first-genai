@@ -15,7 +15,6 @@ COPY data ./data
 COPY .streamlit ./.streamlit
 
 RUN pip install --no-cache-dir .
-
 RUN mkdir -p /app/.streamlit && chmod -R 777 /app/.streamlit
 
 EXPOSE 8501
