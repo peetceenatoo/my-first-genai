@@ -27,6 +27,7 @@ REGOLE DI ESTRAZIONE:
 - Non inferire né inventare valori non presenti nel documento: non inferire informazione nè dagli schemi, nè dalle regole.
 - Alcuni valori potrebbero non essere presenti nel documento. Non cercare di ricavarli se non esplicitamente presenti.
 - Alcuni valori potrebbero comparire nell'immagine senza etichetta del campo: cerca un valore anche se non è accompagnato dalla sua etichetta.
+- Quando un campo fa riferimento a un'etichetta (es. "Cod. (A)"), privilegia SEMPRE il valore vicino a quella etichetta rispetto ad altri simili nel documento.
 """
 
 def _safe_json(text: str) -> dict[str, Any]:
