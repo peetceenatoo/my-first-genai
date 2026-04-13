@@ -31,14 +31,6 @@ def _extract_lines(blocks: list[dict]) -> str:
                 lines.append(text)
     return "\n".join(lines)
 
-
-def _safe_confidence(value: object, default: float = 1.0) -> float:
-    try:
-        return float(value) / 100.0
-    except (TypeError, ValueError):
-        return default
-
-
 def _extract_queries_from_response(response: dict) -> list[TextractQuery]:
     """Extract query results from AnalyzeDocument QUERIES response."""
     queries: list[TextractQuery] = []
@@ -46,7 +38,7 @@ def _extract_queries_from_response(response: dict) -> list[TextractQuery]:
     query_blocks = [b for b in response.get("Blocks", []) if b.get("BlockType") == "QUERY"]
     for qblock in query_blocks:
         query_text = qblock.get("Query", {}).get("Text", "")
-        confidence = _safe_confidence(qblock.get("Confidence", 100))
+        confidence = qblock.get("Confidence", 100)
         answer = ""
         
         # Find answer via ANSWER relationship
@@ -89,7 +81,7 @@ def _extract_forms_from_response(response: dict) -> list[TextractForm]:
             continue
 
         key_text_parts: list[str] = []
-        key_confidence = _safe_confidence(block.get("Confidence", 100))
+        key_confidence = block.get("Confidence", 100)
         value_text = ""
         value_confidence = 1.0
 
@@ -105,7 +97,7 @@ def _extract_forms_from_response(response: dict) -> list[TextractForm]:
                     value_block = block_map.get(value_block_id)
                     if not value_block:
                         continue
-                    value_confidence = _safe_confidence(value_block.get("Confidence", 100))
+                    value_confidence = value_block.get("Confidence", 100)
                     value_text_parts: list[str] = []
                     for value_rel in value_block.get("Relationships", []):
                         if value_rel.get("Type") == "CHILD":
@@ -279,9 +271,14 @@ def detect_text(
             "or provide AWS_PROFILE with mounted ~/.aws credentials. "
             "If running in Docker, mount ~/.aws into the container."
         ) from exc
-    except Exception:
+    except Exception as exc:
         # When AnalyzeDocument fails in improve mode, fallback to DetectDocumentText.
         if improve_ocr:
+            print(
+                "AnalyzeDocument failed, falling back to DetectDocumentText: "
+                f"{exc.__class__.__name__}: {exc}",
+                flush=True,
+            )
             response = client.detect_document_text(Document={"Bytes": document_bytes})
             blocks = response.get("Blocks", [])
             if not isinstance(blocks, list):
