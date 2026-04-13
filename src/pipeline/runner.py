@@ -126,7 +126,7 @@ def run_pipeline(
                 extraction = extract_metadata(
                     default_schema.fields,
                     textract_document=textract_doc,
-                    log=(len(votes) == 0),
+                    log=(False)),
                 )
                 vote_payload = extraction.get("metadata", {})
                 votes.append(vote_payload)
