@@ -102,18 +102,13 @@ def run_pipeline(
         preview.save(buf, format="PNG")
         return base64.b64encode(buf.getvalue()).decode()
 
-    def build_query_text(field) -> str:
-        if field.description:
-            return f"{field.name} - {field.description}"
-        return field.name
-
     for idx, payload in enumerate(files, start=1):
         filename = payload["name"]
         images: list[Image.Image] = payload["images"]
         images_for_llm = images if max_pages is None else images[:max_pages]
 
-        # Extract OCR with queries based on all schema fields when enhancement is enabled.
-        query_strings = [build_query_text(field) for field in default_schema.fields]
+        # Use only first 15 field names as Textract queries.
+        query_strings = [field.name for field in default_schema.fields[:15]]
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
         textract_doc = run_ocr(
             images_for_llm,
