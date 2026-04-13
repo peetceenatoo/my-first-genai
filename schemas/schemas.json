@@ -27,7 +27,7 @@
       {
         "name": "Targa",
         "type": "string",
-        "description": "Cod. (A) Targa del veicolo. Formato tipico AA000AA."
+        "description": "Cod. (A) Targa del veicolo. Formato tipico AA000AA, senza spazi."
       },
       {
         "name": "Data prima immatricolazione",
@@ -55,12 +55,12 @@
         "description": "Cod. (E) Numero del telaio a 17 caratteri alfanumerici."
       },
       {
-        "name": "Massa a carico ammissibile complessiva",
+        "name": "Massa complessiva a carico ammissibile",
         "type": "number",
-        "description": "Cod. (F.2) Numero in Kg della massa massima a carico ammissibile del veicolo in servizio nello Stato membro di immatricolazione"
+        "description": "Cod. (F.2) Numero in Kg della massa massima complessivaa carico ammissibile del veicolo in servizio nello Stato membro di immatricolazione"
       },
       {
-        "name": "Massa a vuoto",
+        "name": "Massa in servizio",
         "type": "number",
         "description": "Cod. (G) Numero in Kg della massa a vuoto. Potrebbe non essere indicato nel campo G, ma essere indicato altrove, senza un codice specifico."
       },
