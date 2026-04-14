@@ -15,7 +15,7 @@
       {
         "name": "Codice Fiscale",
         "type": "string",
-        "description": "Codice fiscale, se presente. Formato tipico AAAAAA00A00A000A."
+        "description": "Codice fiscale, se presente. Formato tipico AAAAAA00A00A000A. Non confondere con numero del documento (es. AV 0000000)."
       }
     ]
   },

@@ -30,7 +30,7 @@ def run_ocr(
                     f"Improve OCR: {improve_ocr}",
                 ]
             )
-            + "\n===== END OCR INPUT =====",
+            + "\n===== END OCR INPUT =====\n",
             flush=True,
         )
 
@@ -98,7 +98,7 @@ def run_ocr(
             + "## OCR TEXT (CANONICAL)\n"
             + (aggregated.plain_text or "(empty)")
             + "\n"
-            "===== END OCR OUTPUT =====\n\n",
+            "===== END OCR OUTPUT =====\n\n\n",
             flush=True,
         )
 

@@ -15,19 +15,14 @@ DEFAULT_EXTRACTION_PROMPT = \
 Estrai metadati strutturati dal documento. Restituisci SOLO JSON valido (niente markdown, nessun commento, nessun testo extra).
 
 REGOLE CRITICHE DI FORMATTAZIONE JSON:
-- Valori stringa (type=string, date): SEMPRE racchiuse tra virgolette.
-- Numeri (type=number, integer): è fondamentale che contengano SOLO cifre da 0 a 9, SENZA nessun altro tipo di carattere come virgolette, lettere o slash.
-- Attieniti al tipo di campo indicato nello schema JSON per decidere se restituire un numero o una stringa.
-- Attieniti allo schema indicato, non restituire campi non presenti nello schema.
-- Stringhe vuote: "" (due virgolette, non null)
-- Numeri vuoti: null (senza virgolette)
+- Rispetta il tipo di campo indicato nello schema JSON: valori stringa (type=string, date) SEMPRE racchiusi tra virgolette, valori numerici (type=number, integer) mai racchiusi tra virgolette.
+- Rispetta il tipo di campo anche nel caso di valori vuoti: stringhe vuote "" (due virgolette, non null), numeri vuoti null (senza virgolette).
 
 REGOLE DI ESTRAZIONE:
 - Le chiavi JSON devono corrispondere esattamente e soltanto ai nomi dei campi forniti nello schema.
 - Rispetta la formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore.
-- Non inferire né inventare valori non presenti nel testo estratto dall'OCR: non inferire informazione non esplicitamente presente.
-- Alcuni valori potrebbero non essere presenti nel documento. Non cercare di ricavarli se non esplicitamente presenti; in tal caso, lascia il campo vuoto.
-- Alcuni valori potrebbero comparire nell'immagine senza etichetta del campo: cerca un valore anche se non è accompagnato dalla sua etichetta, purchè presente nel testo.
+- Non inferire né inventare valori non presenti nel testo estratto dall'OCR: non restituire informazione non esplicitamente presente.
+- Prediligi un valore vuoto rispetto a un valore che non rispetta la sua descrizione: non cercare di trovare valori che potrebbero non essere presenti.
 - Quando un campo fa riferimento a un'etichetta (es. "Cod. (A) AA000AA"), privilegia SEMPRE il valore esplicitamente presente che si trova vicino a quella etichetta.
 """
 
@@ -96,7 +91,7 @@ def extract_metadata(
             "[SCHEMA - START]\n"
             f"{field_lines}\n"
             "[SCHEMA - END]\n\n"
-            "===== END EXTRACTION PROMPT =====",
+            "===== END EXTRACTION PROMPT =====\n",
             flush=True,
         )
 
