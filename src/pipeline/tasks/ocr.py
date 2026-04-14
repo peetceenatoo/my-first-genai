@@ -98,7 +98,7 @@ def run_ocr(
             + "## OCR TEXT (CANONICAL)\n"
             + (aggregated.plain_text or "(empty)")
             + "\n"
-            "===== END OCR OUTPUT =====",
+            "===== END OCR OUTPUT =====\n\n",
             flush=True,
         )
 

@@ -18,16 +18,17 @@ REGOLE CRITICHE DI FORMATTAZIONE JSON:
 - Valori stringa (type=string, date): SEMPRE racchiuse tra virgolette.
 - Numeri (type=number, integer): è fondamentale che contengano SOLO cifre da 0 a 9, SENZA nessun altro tipo di carattere come virgolette, lettere o slash.
 - Attieniti al tipo di campo indicato nello schema JSON per decidere se restituire un numero o una stringa.
+- Attieniti allo schema indicato, non restituire campi non presenti nello schema.
 - Stringhe vuote: "" (due virgolette, non null)
 - Numeri vuoti: null (senza virgolette)
 
 REGOLE DI ESTRAZIONE:
 - Le chiavi JSON devono corrispondere esattamente e soltanto ai nomi dei campi forniti nello schema.
 - Rispetta la formulazione, maiuscole/minuscole, punteggiatura e unità del documento nel valore.
-- Non inferire né inventare valori non presenti nel documento: non inferire informazione nè dagli schemi, nè dalle regole.
-- Alcuni valori potrebbero non essere presenti nel documento. Non cercare di ricavarli se non esplicitamente presenti.
-- Alcuni valori potrebbero comparire nell'immagine senza etichetta del campo: cerca un valore anche se non è accompagnato dalla sua etichetta.
-- Quando un campo fa riferimento a un'etichetta (es. "Cod. (A) AA000AA"), privilegia SEMPRE il valore vicino a quella etichetta.
+- Non inferire né inventare valori non presenti nel testo estratto dall'OCR: non inferire informazione non esplicitamente presente.
+- Alcuni valori potrebbero non essere presenti nel documento. Non cercare di ricavarli se non esplicitamente presenti; in tal caso, lascia il campo vuoto.
+- Alcuni valori potrebbero comparire nell'immagine senza etichetta del campo: cerca un valore anche se non è accompagnato dalla sua etichetta, purchè presente nel testo.
+- Quando un campo fa riferimento a un'etichetta (es. "Cod. (A) AA000AA"), privilegia SEMPRE il valore esplicitamente presente che si trova vicino a quella etichetta.
 """
 
 def _safe_json(text: str) -> dict[str, Any]:
@@ -92,11 +93,9 @@ def extract_metadata(
             "[SYSTEM - START]\n"
             f"{DEFAULT_EXTRACTION_PROMPT}\n"
             "[SYSTEM - END]\n\n"
-            "[USER]\n"
-            "## SCHEMA\n"
-            f"{field_lines}\n\n"
-            "## OUTPUT OCR\n"
-            "Contenuto OCR passato al prompt.\n"
+            "[SCHEMA - START]\n"
+            f"{field_lines}\n"
+            "[SCHEMA - END]\n\n"
             "===== END EXTRACTION PROMPT =====",
             flush=True,
         )
@@ -107,7 +106,7 @@ def extract_metadata(
         print(
             "===== EXTRACTION RESPONSE =====\n"
             f"{response.strip() or '(empty)'}\n"
-            "===== END EXTRACTION RESPONSE =====\n\n",
+            "===== END EXTRACTION RESPONSE =====\n\n\n",
             flush=True,
         )
 
