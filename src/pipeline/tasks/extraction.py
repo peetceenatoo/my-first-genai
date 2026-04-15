@@ -19,7 +19,8 @@ REGOLE CRITICHE DI FORMATTAZIONE JSON:
 - Rispetta il tipo di campo anche nel caso di valori vuoti: stringhe vuote "" (due virgolette, non null), numeri vuoti null (senza virgolette).
 
 REGOLE DI ESTRAZIONE CRITICHE:
-- Le chiavi JSON presenti nella tua risposta devono corrispondere esattamente e soltanto ai nomi dei campi forniti nello schema.
+- Le chiavi JSON presenti nella tua risposta devono corrispondere ESATTAMENTE ai nomi dei campi forniti nello schema, comprensivo di qualsiasi carattere nel nome del campo nello schema.
+- I campi individuati devono essere identici in numero a quelli indicati nello schema: non devono esserci campi superflui, nè assenti. 
 - Rispetta la formulazione, le maiuscole/minuscole, la punteggiatura e le unità dei valori estratti dal testo del documento.
 - PRIORITÀ ASSOLUTA alle etichette con codici alfanumerici tra parentesi (es. "(A)", "(D.1)", ecc.), se utilizzate dal documento: cerca SEMPRE il valore immediatamente associato a queste etichette.
 - Se una etichetta non è seguita da un valore o il valore non rispetta la descrizione del campo, restituisci un valore vuoto piuttosto che inferire o utilizzare valori trovati altrove.
