@@ -39,8 +39,7 @@ def run_pipeline(
     run_id = run_store.create_run_id()
     documents: list[RunDocument] = []
 
-    vote_runs = 7 if options.compute_confidence else 3
-
+    vote_runs = 5 if options.compute_confidence else 3
     total_docs = len(files)
     # OCR + schema + extraction for each document, plus one final save step.
     total_steps = max(total_docs * 3 + 1, 1)
