@@ -15,7 +15,7 @@
       {
         "name": "Codice Fiscale",
         "type": "string",
-        "description": "Codice fiscale, se presente. Formato tipico AAAAAA00A00A000A. Non confondere con numero del documento (es. AV 0000000)."
+        "description": "Codice fiscale, se presente. Formato tipico AAAAAA00A00A000A. NON confondere con numero del documento (es. AV 0000000)."
       }
     ]
   },
@@ -25,12 +25,12 @@
       {
         "name": "Targa",
         "type": "string",
-        "description": "Cod. (A) Targa del veicolo, un codice alfanumerico di 7 caratteri. Formato tipico AA000AA. Non confondere con modello del documento (es. MC 820), nè numero della carta di circolazione (es. N° A000000A000)."
+        "description": "Cod. (A) Targa del veicolo, un codice alfanumerico di 7 o 8 caratteri. Appare più volte nel documento, affianco alla propria etichetta (A). NON confondere con il numero della carta di circolazione (es. N° A00000AA000), anch'esso ricorrente nel documento, ma più lungo; anche la targa è ricorrente e appare affianco all'etichetta (A), ma è più corta."
       },
       {
         "name": "Data prima immatricolazione",
         "type": "date",
-        "description": "Cod. (B) Data della prima immatricolazione del veicolo. Formato tipico DD/MM/YYYY)."
+        "description": "Cod. (B) Data della prima immatricolazione del veicolo. Formato tipico può essere espresso come data intera (es. DD/MM/YYYY) oppure solo come anno (es. YYYY); nel secondo caso, restituisci esclusivamente l'anno nella risposta."
       },
       {
         "name": "Marca",
@@ -40,12 +40,12 @@
       {
         "name": "Tipo veicolo",
         "type": "string",
-        "description": "Cod. (D.2) Codice alfanumerico di versione del costruttore del veicolo. Spesso segue la marca."
+        "description": "Cod. (D.2) Codice alfanumerico di versione del costruttore del veicolo, che appare come un numero o un codice. Se presente, il valore segue l'etichetta (D.2); se non presente, restituisci un valore vuoto."
       },
       {
         "name": "Denominazione commerciale",
         "type": "string",
-        "description": "Cod. (D.3) Nome commerciale del modello del veicolo (es. Panda, Golf). Spesso segue il codice di versione del veicolo."
+        "description": "Cod. (D.3) Nome commerciale del modello del veicolo (es. Panda, Golf). Se presente, il valore segue l'etichetta (D.3); se non presente, restituisci un valore vuoto."
       },
       {
         "name": "Numero telaio (VIN)",
@@ -60,12 +60,12 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) Numero in Kg della massa a vuoto. Potrebbe anche essere espresso a parole invece che in corrispondenza dell'etichetta (G). In ogni caso, mai in corrispondenza di un'etichetta diversa da (G)."
+        "description": "Cod. (G) Numero in Kg della massa in servizio (a vuoto). In generale, questo valore segue l'etichetta (G), ma potrebbe altrimenti apparire a parole come MASSA A VUOTO, nel paragrafo testuale del documento. NON confondere MAI con la massa (F.3), che precede l'etichetta (G), nè con nessun altro numero errato."
       },
       {
         "name": "Categoria veicolo",
         "type": "string",
-        "description": "Cod. (J) Categoria del veicolo (es. M2, N3, L3e)."
+        "description": "Cod. (J) Categoria del veicolo (es. M1, N3, L3e)."
       },
       {
         "name": "Carrozzeria",
@@ -75,7 +75,7 @@
       {
         "name": "Numero omologazione",
         "type": "string",
-        "description": "Cod. (K) Composto da numero di omologazione interno e numero di omologazione ufficiale (es. 0A0A0A0A0A0A0 e3*98/14*0000). Le due parti possono apparire separate."
+        "description": "Cod. (K) Composto da numero di omologazione interno e numero di omologazione ufficiale (es. 0A0A0A0A0A0A0 e3*98/14*0000, oppure 0A0A0A0A0A0A0 e11*2001/116*0000*00). Le due parti potrebbero apparire separate."
       },
       {
         "name": "Numero assi",
