@@ -35,7 +35,7 @@
       {
         "name": "Marca",
         "type": "string",
-        "description": "Cod. (D.1) Nome della marca del veicolo, parte del nome per intero della fabbrica (es. FIAT, BMW)."
+        "description": "Cod. (D.1) Nome della marca del veicolo. Rimuovi SEMPRE suffissi aziendali (es. AG, SPA, S.P.A., S.R.L., SRL) e codici alfanumerici appartenenti al nome della fabbrica, restituendo solo la marca , parte del nome per intero della fabbrica (es. FIAT, BMW, PORSCHE)."
       },
       {
         "name": "Tipo veicolo",
@@ -60,7 +60,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) ATTENZIONE: NON è il valore che segue (F.3)! È il valore che appare IMMEDIATAMENTE dopo l'etichetta (G) oppure che è esplicitamente indicato come MASSA A VUOTO nel testo. Nel layout tipico, (F.3) precede (G), ma sono valori diversi. Cerca specificamente l'etichetta (G) o MASSA A VUOTO"
+        "description": "Cod. (G) ATTENZIONE: NON è il valore associato ad (F.3)! È il valore che appare immediatamente dopo l'etichetta (G) oppure che è esplicitamente indicato come MASSA A VUOTO nel testo. Nel layout tipico, (F.3) precede (G), ma sono valori diversi: MAI inserire il valore di (F.3) in questo campo. Cerca specificamente l'etichetta (G) o la dicitura MASSA A VUOTO"
       },
       {
         "name": "Categoria veicolo",
@@ -75,7 +75,7 @@
       {
         "name": "Numero omologazione",
         "type": "string",
-        "description": "Cod. (K) Composto da numero di omologazione interno e numero di omologazione ufficiale (es. 0A0A0A0A0A0A0 e3*98/14*0000, oppure 0A0A0A0A0A0A0 e11*2001/116*0000*00). Le due parti potrebbero apparire separate."
+        "description": "Cod. (K) Composto da numero di omologazione interno e numero di omologazione ufficiale (es. 0A0A0A0A0A0A0 e3*98/14*0000, oppure 0A0A0A0A0A0A0 e11*2001/116*0199*00). Le due parti potrebbero apparire separate."
       },
       {
         "name": "Numero assi",
