@@ -60,7 +60,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) Numero in Kg della massa a vuoto. Potrebbe non essere indicato nel campo G, ma essere indicato altrove, senza un codice specifico. Non confondere con (F.3)."
+        "description": "Cod. (G) Numero in Kg della massa a vuoto. Potrebbe anche essere espresso a parole invece che in corrispondenza dell'etichetta (G). In ogni caso, mai in corrispondenza di un'etichetta diversa da (G)."
       },
       {
         "name": "Categoria veicolo",
@@ -80,22 +80,22 @@
       {
         "name": "Numero assi",
         "type": "integer",
-        "description": "Cod. (L) Numero di assi del veicolo. Se non presente, da non confondere con altri numeri interi presenti nel documento."
+        "description": "Cod. (L) Numero di assi del veicolo. Se non presente, da non confondere con altri numeri interi presenti nel documento. Generalmente, è un numero piccolo (es. 2, 3, 4)."
       },
       {
         "name": "Massa per asse N.1",
         "type": "number",
-        "description": "Cod. (N.1) Numero in Kg della massa per asse N.1."
+        "description": "Cod. (N.1) Numero in Kg della massa per asse N.1. Fondamentale rispettare l'etichetta (N.1) per non confondere con altri numeri presenti."
       },
       {
         "name": "Massa per asse N.2",
         "type": "number",
-        "description": "Cod. (N.2) Numero in Kg della massa per asse N.2."
+        "description": "Cod. (N.2) Numero in Kg della massa per asse N.2. Fondamentale rispettare l'etichetta (N.2) per non confondere con altri numeri presenti."
       },
       {
         "name": "Massa rimorchiabile (frenato)",
         "type": "number",
-        "description": "Cod. (O.1) Numero in Kg della massa rimorchiabile (frenato)."
+        "description": "Cod. (O.1) Numero in Kg della massa rimorchiabile (frenato). Fondamentale rispettare l'etichetta (O.1) per non confondere con altri numeri presenti."
       },
       {
         "name": "Cilindrata (cm³)",
