@@ -127,11 +127,13 @@ def run_pipeline(
         report_progress(f"Extracting {idx}/{total_docs} • {filename}")
         try:
             votes: list[dict[str, Any]] = []
-            for _ in range(vote_runs):
+            for vote_index in range(vote_runs):
                 extraction = extract_metadata(
                     default_schema.fields,
                     textract_document=textract_doc,
                     log=log,
+                    log_prompt=(log and vote_index == 0),
+                    log_response=log,
                 )
                 vote_payload = extraction.get("metadata", {})
                 votes.append(vote_payload)

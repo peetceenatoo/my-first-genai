@@ -61,8 +61,13 @@ def extract_metadata(
     *,
     textract_document: TextractDocument,
     log: bool = True,
+    log_prompt: bool | None = None,
+    log_response: bool | None = None,
 ) -> dict[str, Any]:
     config = load_config()
+
+    should_log_prompt = log if log_prompt is None else log_prompt
+    should_log_response = log if log_response is None else log_response
 
     field_lines = "\n".join(_render_field(field) for field in fields)
 
@@ -81,7 +86,7 @@ def extract_metadata(
         {"role": "user", "content": content},
     ]
 
-    if log:
+    if should_log_prompt:
         print(
             "===== EXTRACTION PROMPT =====\n"
             "[SYSTEM - START]\n"
@@ -96,7 +101,7 @@ def extract_metadata(
 
     response = get_chat_completion(messages, model=config.extract_model)
 
-    if log:
+    if should_log_response:
         print(
             "===== EXTRACTION RESPONSE =====\n"
             f"{response.strip() or '(empty)'}\n"
