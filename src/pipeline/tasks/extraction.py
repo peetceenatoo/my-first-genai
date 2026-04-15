@@ -18,11 +18,11 @@ REGOLE CRITICHE DI FORMATTAZIONE JSON:
 - Rispetta il tipo di campo indicato nello schema JSON: valori stringa (type=string, date) SEMPRE racchiusi tra virgolette, valori numerici (type=number, integer) mai racchiusi tra virgolette.
 - Rispetta il tipo di campo anche nel caso di valori vuoti: stringhe vuote "" (due virgolette, non null), numeri vuoti null (senza virgolette).
 
-REGOLE DI ESTRAZIONE:
+REGOLE DI ESTRAZIONE CRITICHE:
 - Le chiavi JSON presenti nella tua risposta devono corrispondere esattamente e soltanto ai nomi dei campi forniti nello schema.
 - Rispetta la formulazione, le maiuscole/minuscole, la punteggiatura e le unità dei valori estratti dal testo del documento.
-- Prediligi un valore vuoto rispetto a un valore estratto dal testo che non rispetta la descrizione del campo: non cercare di inferire valori, poichè potrebbero semplicemente non essere presenti.
-- Se nella descrizione di un campo è presente un'etichetta (es. "(A)"), privilegia SEMPRE valori che nel testo si trovano vicino a tale etichetta, a meno di indicazioni contrarie.
+- PRIORITÀ ASSOLUTA alle etichette con codici alfanumerici tra parentesi (es. "(A)", "(D.1)", ecc.), se utilizzate dal documento: cerca SEMPRE il valore immediatamente associato a queste etichette.
+- Se una etichetta non è seguita da un valore o il valore non rispetta la descrizione del campo, restituisci un valore vuoto piuttosto che inferire o utilizzare valori trovati altrove.
 """
 
 def _safe_json(text: str) -> dict[str, Any]:

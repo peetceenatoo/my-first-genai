@@ -25,7 +25,7 @@
       {
         "name": "Targa",
         "type": "string",
-        "description": "Cod. (A) Targa del veicolo, un codice alfanumerico di 7 o 8 caratteri. Appare più volte nel documento, affianco alla propria etichetta (A). NON confondere con il numero della carta di circolazione (es. N° A00000AA000), anch'esso ricorrente nel documento, ma più lungo; anche la targa è ricorrente e appare affianco all'etichetta (A), ma è più corta."
+        "description": "Cod. (A) Targa del veicolo. DEVE essere un codice di ESATTAMENTE 7 o 8 caratteri alfanumerici (es. AB123CD, ABC1234). Cerca SOLO il valore che appare IMMEDIATAMENTE dopo l'etichetta (A) nel documento. NON utilizzare mai il numero della carta di circolazione (che è più lungo) o altri codici numerici. Se dopo (A) non trovi un codice di 7-8 caratteri, restituisci stringa vuota."
       },
       {
         "name": "Data prima immatricolazione",
@@ -40,7 +40,7 @@
       {
         "name": "Tipo veicolo",
         "type": "string",
-        "description": "Cod. (D.2) Codice alfanumerico di versione del costruttore del veicolo, che appare come un numero o un codice. Se presente, il valore segue l'etichetta (D.2); se non presente, restituisci un valore vuoto."
+        "description": "Cod. (D.2) Codice alfanumerico di versione del costruttore che appare IMMEDIATAMENTE dopo l'etichetta (D.2). Se l'etichetta (D.2) non è seguita da alcun valore o è seguita da valori che non corrispondono a questo campo, restituisci stringa vuota."
       },
       {
         "name": "Denominazione commerciale",
@@ -60,7 +60,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) Numero in Kg della massa in servizio (a vuoto). In generale, questo valore segue l'etichetta (G), ma potrebbe altrimenti apparire a parole come MASSA A VUOTO, nel paragrafo testuale del documento. NON confondere MAI con la massa (F.3), che precede l'etichetta (G), nè con nessun altro numero errato."
+        "description": "Cod. (G) ATTENZIONE: NON è il valore che segue (F.3)! È il valore che appare IMMEDIATAMENTE dopo l'etichetta (G) oppure che è esplicitamente indicato come MASSA A VUOTO nel testo. Nel layout tipico, (F.3) precede (G), ma sono valori diversi. Cerca specificamente l'etichetta (G) o MASSA A VUOTO"
       },
       {
         "name": "Categoria veicolo",
@@ -85,12 +85,12 @@
       {
         "name": "Massa per asse N.1",
         "type": "number",
-        "description": "Cod. (N.1) Numero in Kg della massa per asse N.1. Fondamentale rispettare l'etichetta (N.1) per non confondere con altri numeri presenti."
+        "description": "Cod. (N.1) Numero in Kg della massa per asse N.1. Fondamentale rispettare l'etichetta (N.1) per non confondere con altri numeri presenti. Se l'etichetta (N.1) non è seguita da alcun valore numerico, restituisci null"
       },
       {
         "name": "Massa per asse N.2",
         "type": "number",
-        "description": "Cod. (N.2) Numero in Kg della massa per asse N.2. Fondamentale rispettare l'etichetta (N.2) per non confondere con altri numeri presenti."
+        "description": "Cod. (N.2) Numero in Kg della massa per asse N.2. Fondamentale rispettare l'etichetta (N.2) per non confondere con altri numeri presenti. Se l'etichetta (N.2) non è seguita da alcun valore numerico, restituisci null"
       },
       {
         "name": "Massa rimorchiabile (frenato)",
