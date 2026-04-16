@@ -48,13 +48,8 @@ def _align_metadata(payload: dict[str, Any], fields: list[SchemaField]) -> dict[
 
 
 def _render_field(field: SchemaField) -> str:
-    enum_hint = (
-        f" enum: {', '.join(str(value) for value in field.enum_values)}"
-        if field.enum_values
-        else ""
-    )
     description = f" - {field.description}" if field.description else ""
-    return f"- {field.name} ({field.field_type}){enum_hint}{description}"
+    return f"- Name: {field.name} - Type: {field.field_type} - Description: {description}"
 
 
 def extract_metadata(
