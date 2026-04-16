@@ -22,7 +22,7 @@ REGOLE DI ESTRAZIONE CRITICHE:
 - Le chiavi JSON presenti nella tua risposta devono corrispondere ESATTAMENTE ai nomi dei campi forniti nello schema. In generale, è FONDAMENTALE che nella chiave del JSON fornito come risposta non sia aggiunto nè rimosso nulla al nome del campo nello schema fornito. 
 - I campi individuati devono essere identici in numero a quelli indicati nello schema: non devono esserci campi aggiuntivi, nè mancanti. 
 - Rispetta la formulazione, le maiuscole/minuscole, la punteggiatura e le unità dei valori estratti dal testo del documento.
-- PRIORITÀ ASSOLUTA alle etichette con codici alfanumerici tra parentesi (es. "(A)", "(D.1)", ecc.), se utilizzate dal documento: cerca SEMPRE il valore immediatamente associato a queste etichette.
+- PRIORITÀ ASSOLUTA alle etichette con codici alfanumerici (es. "(A)", "(D.1)", ecc.), se utilizzate dal documento: cerca SEMPRE il valore immediatamente associato a queste etichette.
 - Se una etichetta non è seguita da un valore o il valore non rispetta la descrizione del campo, restituisci un valore vuoto piuttosto che inferire o utilizzare valori trovati altrove.
 """
 
