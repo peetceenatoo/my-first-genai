@@ -2,6 +2,8 @@
 
 Extractly is a Streamlit app for defining document schemas and extracting structured metadata with traceable runs. It is designed to feel like a client-ready “Document Metadata Extraction Studio” with clear workflow steps and demo-friendly outputs.
 
+This repository is built around a practical pipeline choice: use OCR + LLM for easier documents by leveraging the low-cost Textract `DetectDocumentText` path, and switch to a mid-quality multimodal model (for example Haiku) for tougher documents. The goal is to avoid relying on expensive OCR AnalyzeDocument-style processing, which in this setup is considered both cost-inefficient and no longer necessary for many extraction workloads.
+
 ## Quickstart
 
 To run with docker:
@@ -17,6 +19,12 @@ docker build -t extractly:latest .
 
 ```bash
 docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
+```
+
+4. Run the app with extraction logging enabled:
+
+```bash
+docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro -e EXTRACTLY_ENABLE_LOGGING=1 extractly:latest
 ```
 
 ## About
