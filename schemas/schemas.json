@@ -65,7 +65,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) Cercare il valore IMMEDIATAMENTE DOPO l'etichetta (G), se presente. Se dopo (G), non c'è un numero, allora cercare il numero dopo MASSA A VUOTO =, rimuovendo l'unità KG. Se non trovi un numero nè in corrispondenza di (G) nè in corrispondenza di MASSA A VUOTO =, restituisci null."
+        "description": "Cod. (G) Cercare il valore IMMEDIATAMENTE DOPO l'etichetta (G), se presente. Se DOPO (G), non c'è un numero, allora cerca il numero dopo MASSA A VUOTO =, rimuovendo l'unità KG. Se trovi il numero preceduto da uno zero (es. MASSA A VUOTO = KG 0350), estrai il numero senza lo zero. Se non trovi un numero nè in corrispondenza di (G) nè in corrispondenza di MASSA A VUOTO = KG, restituisci null."
       },
       {
         "name": "Categoria veicolo",
