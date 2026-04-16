@@ -53,14 +53,19 @@
         "description": "Cod. (E) Numero del telaio a 17 caratteri alfanumerici."
       },
       {
-        "name": "Massa complessiva a carico ammissibile",
+        "name": "Massa complessiva a carico ammissibile del veicolo",
         "type": "number",
-        "description": "Cod. (F.2) Numero in Kg della massa massima complessiva a carico ammissibile del veicolo in servizio nello Stato membro di immatricolazione"
+        "description": "Cod. (F.2) Numero in Kg della massa massima complessiva a carico ammissibile del veicolo in servizio nello Stato membro di immatricolazione."
+      },
+      {
+        "name": "Massa complessiva a carico ammissibile dell'insieme",
+        "type": "number", 
+        "description": "Cod. (F.3) Numero in Kg della massa massima complessiva a carico ammissibile dell'insieme in servizio nello Stato membro di immatricolazione. Si trova immediatamente dopo l'etichetta (F.3), spesso nella sequenza (F.3) XXXX (G). Se (F.3) non è seguito da alcun numero, restituisci null."
       },
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) CRITICO: nella sequenza (F.3) XXXX (G), il valore XXXX appartiene a (F.3), NON a (G). Priorità di ricerca: cercare il valore DOPO l'etichetta (G), se presente. Se tra (G) e l'etichetta successiva non c'è un numero, cercare MASSA A VUOTO = numero. Se non trovi un numero associato a (G), nè a MASSA A VUOTO, restituisci null."
+        "description": "Cod. (G) CRITICO: Priorità di ricerca: cercare il valore DOPO l'etichetta (G), se presente. Se dopo (G), oppure tra (G) e l'etichetta successiva, non c'è un numero, allora cercare dopo MASSA A VUOTO. Se non trovi un numero nè dopo (G) nè dopo MASSA A VUOTO, restituisci null."
       },
       {
         "name": "Categoria veicolo",
