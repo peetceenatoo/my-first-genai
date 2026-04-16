@@ -60,7 +60,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) CRITICO: Priorità di ricerca in questo ordine: 1. Valore che appare IMMEDIATAMENTE DOPO (e non prima) l'etichetta (G) (es. (G) 2000); 2. Se (G) è vuota, cerca MASSA A VUOTO = e poi un numero; 3. Se non c'è nessun valore immediatamente dopo (G), nè trovi la dicitura MASSA A VUOTO, ritorna null. ATTENZIONE: (F.3) è facilmente confondibile, perchè si trova immediatamente prima (es. (F.3) 1500 (G)): NON utilizzare MAI il valore compreso tra (F.3) e (G)."
+        "description": "Cod. (G) CRITICO: nella sequenza (F.3) XXXX (G), il valore XXXX appartiene a (F.3), NON a (G). Priorità di ricerca: cercare il valore DOPO l'etichetta (G), se presente. Se tra (G) e l'etichetta successiva non c'è un numero, cercare MASSA A VUOTO = numero. Se non trovi un numero associato a (G), nè a MASSA A VUOTO, restituisci null."
       },
       {
         "name": "Categoria veicolo",
