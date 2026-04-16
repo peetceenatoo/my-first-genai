@@ -40,12 +40,12 @@
       {
         "name": "Tipo veicolo",
         "type": "string",
-        "description": "Cod. (D.2) Codice alfanumerico di versione del costruttore che appare IMMEDIATAMENTE dopo l'etichetta (D.2). Se l'etichetta (D.2) non è seguita da alcun valore o è seguita da valori che non corrispondono a questo campo, restituisci stringa vuota."
+        "description": "Cod. (D.2) Codice alfanumerico di versione del costruttore che appare IMMEDIATAMENTE dopo l'etichetta (D.2). Se l'etichetta (D.2) non è seguita da alcun valore o è seguita dal valore desiderato, non cercarlo altrove e restituisci stringa vuota."
       },
       {
         "name": "Denominazione commerciale",
         "type": "string",
-        "description": "Cod. (D.3) Nome commerciale del modello del veicolo (es. Panda, Golf). Se presente, il valore segue l'etichetta (D.3); se non presente, restituisci un valore vuoto."
+        "description": "Cod. (D.3) Nome commerciale del modello del veicolo (es. Panda, Golf). Se presente, il valore segue l'etichetta (D.3). Se (D.3) non è seguita dalla denominazione, non cercarla altrove e restituisci stringa vuota."
       },
       {
         "name": "Numero telaio (VIN)",
