@@ -35,7 +35,7 @@
       {
         "name": "Marca",
         "type": "string",
-        "description": "Cod. (D.1) Nome della marca del veicolo. Rimuovi SEMPRE suffissi aziendali (es. AG, SPA, S.P.A., S.R.L., SRL) e codici alfanumerici appartenenti al nome della fabbrica, restituendo solo la marca , parte del nome per intero della fabbrica (es. FIAT, BMW, PORSCHE)."
+        "description": "Cod. (D.1) Nome della marca del veicolo. Rimuovi SEMPRE suffissi aziendali (es. AG, SPA, S.P.A., S.R.L., SRL), restituendo solo la marca per come è comunemente nota (es. FIAT, BMW, PORSCHE, TOYOTAx)."
       },
       {
         "name": "Tipo veicolo",
@@ -65,7 +65,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) Cercare il valore DOPO l'etichetta (G), se presente. Se dopo (G), oppure tra (G) e l'etichetta successiva, non c'è un numero, allora cercare il numero dopo MASSA A VUOTO  = KG. Se non trovi un numero nè dopo (G) nè dopo MASSA A VUOTO = KG, restituisci null."
+        "description": "Cod. (G) Cercare il valore IMMEDIATAMENTE DOPO l'etichetta (G), se presente. Se dopo (G), non c'è un numero, allora cercare il numero dopo MASSA A VUOTO =, rimuovendo l'unità KG. Se non trovi un numero nè in corrispondenza di (G) nè in corrispondenza di MASSA A VUOTO =, restituisci null."
       },
       {
         "name": "Categoria veicolo",
