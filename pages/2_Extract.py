@@ -41,7 +41,7 @@ if not schemas:
 
 status_rows = supported_schema_status(schemas)
 supported_schema_names = [
-    str(row["schema"]) for row in status_rows if bool(row["supported"])
+    str(row["schema"]) for row in status_rows if bool(row.get("is_supported"))
 ]
 
 if not supported_schema_names:
@@ -80,7 +80,10 @@ with right:
 
 section_spacer()
 section_title("Schema execution status")
-st.dataframe(status_rows, width="stretch")
+st.dataframe(
+    [{"schema": row["schema"], "supported": row["supported"], "pipeline": row["pipeline"]} for row in status_rows],
+    width="stretch",
+)
 
 section_spacer("lg")
 

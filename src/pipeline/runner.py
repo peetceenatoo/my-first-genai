@@ -35,12 +35,12 @@ BOOKLET_SCHEMA_NAMES = {"carta di circolazione"}
 PIPELINE_DEFINITIONS: dict[str, PipelineDefinition] = {
     "id_ocr": PipelineDefinition(
         key="id_ocr",
-        label="ID Card OCR Pipeline",
+        label="OCR DetectText + Cheap LLM",
         description="Textract DetectDocumentText + Nova Lite extraction.",
     ),
     "booklet_vision": PipelineDefinition(
         key="booklet_vision",
-        label="Booklet Vision Pipeline",
+        label="Vision + Extraction through Multimodal LLM",
         description="Direct image extraction with a stronger vision-capable model.",
     ),
 }
@@ -69,11 +69,13 @@ def supported_schema_status(schemas: list[DocumentSchema]) -> list[dict[str, str
     rows: list[dict[str, str | bool]] = []
     for schema in schemas:
         pipeline = get_pipeline_for_schema(schema.name)
+        is_supported = pipeline is not None
         rows.append(
             {
                 "schema": schema.name,
-                "supported": pipeline is not None,
+                "supported": "Supported" if is_supported else "Not supported",
                 "pipeline": pipeline.label if pipeline else "Not implemented",
+                "is_supported": is_supported,
             }
         )
     return rows
