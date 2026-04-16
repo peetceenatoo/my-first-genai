@@ -32,7 +32,7 @@ def load_config() -> AppConfig:
     schema_dir = Path(os.getenv("EXTRACTLY_SCHEMAS_DIR", PROJECT_ROOT / "schemas"))
     aws_region = os.getenv(
         "EXTRACTLY_AWS_REGION",
-        os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "us-east-1")),
+        os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION", "eu-west-1")),
     )
 
     return AppConfig(
