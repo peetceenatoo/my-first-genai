@@ -65,7 +65,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) CRITICO: Priorità di ricerca: cercare il valore DOPO l'etichetta (G), se presente. Se dopo (G), oppure tra (G) e l'etichetta successiva, non c'è un numero, allora cercare dopo MASSA A VUOTO. Se non trovi un numero nè dopo (G) nè dopo MASSA A VUOTO, restituisci null."
+        "description": "Cod. (G) Cercare il valore DOPO l'etichetta (G), se presente. Se dopo (G), oppure tra (G) e l'etichetta successiva, non c'è un numero, allora cercare il numero dopo MASSA A VUOTO =. Se non trovi un numero nè dopo (G) nè dopo MASSA A VUOTO, restituisci null."
       },
       {
         "name": "Categoria veicolo",
