@@ -11,7 +11,6 @@ from src.integrations.utils.textract_types import TextractDocument
 def run_ocr(
     images: list[Image.Image],
     *,
-    improve_ocr: bool = True,
     ocr_payload: dict[str, Any] | None = None,
     log: bool = True,
 ) -> TextractDocument:
@@ -27,7 +26,7 @@ def run_ocr(
             + "\n".join(
                 [
                     *image_lines,
-                    f"Improve OCR: {improve_ocr}",
+                    "Mode: DetectDocumentText",
                 ]
             )
             + "\n===== END OCR INPUT =====\n",
@@ -53,7 +52,7 @@ def run_ocr(
         documents: list[TextractDocument] = []
 
         for page_num, image in enumerate(images, start=1):
-            doc = detect_text(image, improve_ocr=improve_ocr, log=log)
+            doc = detect_text(image, log=log)
             doc.page_number = page_num
             doc.num_pages = len(images)
             documents.append(doc)
@@ -61,12 +60,11 @@ def run_ocr(
         # Aggregate all data into a single canonical OCR output.
         aggregated = TextractDocument(
             num_pages=len(images),
-            textract_api_used=documents[0].textract_api_used if documents else "AnalyzeDocument",
+            textract_api_used=documents[0].textract_api_used if documents else "DetectDocumentText",
         )
 
         for doc in documents:
             aggregated.raw_blocks.extend(doc.raw_blocks)
-            aggregated.forms.extend(doc.forms)
             if doc.plain_text:
                 if aggregated.plain_text:
                     aggregated.plain_text += "\n---PAGE BREAK---\n" + doc.plain_text
@@ -78,24 +76,7 @@ def run_ocr(
             "===== OCR OUTPUT =====\n"
             f"Textract API: {aggregated.textract_api_used}\n"
             f"Pages: {aggregated.num_pages}\n"
-            "## FORMS\n"
-            + (
-                "\n".join(
-                    [
-                        f"  {form.key}: {form.value}"
-                        + (
-                            f" [confidence: {form.value_confidence:.1%}]"
-                            if form.value_confidence < 1.0
-                            else ""
-                        )
-                        for form in aggregated.forms
-                    ]
-                )
-                if aggregated.forms
-                else "(none)"
-            )
-            + "\n\n"
-            + "## OCR TEXT (CANONICAL)\n"
+            "## OCR TEXT (CANONICAL)\n"
             + (aggregated.plain_text or "(empty)")
             + "\n"
             "===== END OCR OUTPUT =====\n\n\n",

@@ -20,7 +20,8 @@ st.markdown(
     <div class="extractly-hero">
         <h1>Extractly: Metadata Extraction Studio</h1>
         <p>Design schemas and extract structured metadata in minutes. Built for
-        client-ready demos with traceability, exports, and run history baked in.</p>
+        client-ready demos with traceability, exports, and run history baked in.
+        Schemas can always be defined; extraction runs only when a dedicated pipeline exists.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -51,7 +52,7 @@ steps[1].markdown(
     """
     <div class="extractly-step">
         <strong>Step B — Upload documents</strong>
-        <p>Batch PDFs, images, or text. Select a schema and run extraction pipeline.</p>
+        <p>Batch PDFs, images, or text. Select an executable schema and run extraction.</p>
     </div>
     """,
     unsafe_allow_html=True,

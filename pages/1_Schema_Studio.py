@@ -25,7 +25,10 @@ inject_branding(Path("data/assets/data_reply.svg"))
 inject_global_styles()
 
 st.title("🧬 Schema Studio")
-st.caption("Design, validate, and version schemas used in extraction runs.")
+st.caption(
+    "Design, validate, and version schemas. "
+    "Execution is enabled only for schemas with a registered pipeline handler."
+)
 
 schemas = store.list_schemas()
 schema_map = {schema.name: schema for schema in schemas}

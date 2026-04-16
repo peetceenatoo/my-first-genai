@@ -9,7 +9,11 @@ from src.config import load_config
 from src.domain.stores.run_store import RunStore
 from src.domain.stores.schema_store import SchemaStore
 from src.pipeline.tasks.preprocess import preprocess
-from src.pipeline.runner import PipelineOptions, run_pipeline
+from src.pipeline.runner import (
+    PipelineOptions,
+    run_pipeline,
+    supported_schema_status,
+)
 from src.ui.components import (
     inject_branding,
     inject_global_styles,
@@ -35,7 +39,19 @@ if not schemas:
     st.warning("No schemas found. Create one in Schema Studio first.")
     st.stop()
 
-schema_names = [schema.name for schema in schemas]
+status_rows = supported_schema_status(schemas)
+supported_schema_names = [
+    str(row["schema"]) for row in status_rows if bool(row["supported"])
+]
+
+if not supported_schema_names:
+    st.warning(
+        "Schemas are available, but none is executable yet. "
+        "Add a pipeline handler in code before running extraction."
+    )
+    st.dataframe(status_rows, width="stretch")
+    st.stop()
+
 schema_placeholder = "Select schema"
 
 if "extract_selected_schema" not in st.session_state:
@@ -54,14 +70,17 @@ with left:
 with right:
     section_title("Pipeline options")
     compute_conf = st.toggle("Field confidence", value=True)
-    improve_ocr = st.toggle("Improve OCR", value=False, help="On: AnalyzeDocument. Off: DetectDocumentText only.")
 
     selected_schema_name = st.selectbox(
         "Choose schema",
-        options=[schema_placeholder] + schema_names,
+        options=[schema_placeholder] + supported_schema_names,
         key="extract_selected_schema",
     )
-    st.caption("Select a schema to run extraction.")
+    st.caption("Select a schema with an implemented extraction pipeline.")
+
+section_spacer()
+section_title("Schema execution status")
+st.dataframe(status_rows, width="stretch")
 
 section_spacer("lg")
 
@@ -101,7 +120,6 @@ if st.button("Run extraction", type="primary", width="stretch"):
     progress.empty()
     options = PipelineOptions(
         compute_confidence=compute_conf,
-        improve_ocr=improve_ocr,
     )
 
     run_schema_name = selected_schema_name
