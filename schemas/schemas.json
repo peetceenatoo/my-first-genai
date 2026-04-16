@@ -60,7 +60,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) ATTENZIONE: Priorità di ricerca in questo ordine: 1. Valore che appare IMMEDIATAMENTE dopo l'etichetta (G); 2. Se (G) è vuota, cerca MASSA A VUOTO = e poi un numero; 3. Se non c'è nessun valore immediatamente dopo (G), nè trovi la dicitura MASSA A VUOTO, ritorna null. In ogni caso, NON utilizzare MAI il valore di (F.3) per questo campo."
+        "description": "Cod. (G) CRITICO: Priorità di ricerca in questo ordine: 1. Valore che appare IMMEDIATAMENTE DOPO (e non prima) l'etichetta (G); 2. Se (G) è vuota, cerca MASSA A VUOTO = e poi un numero; 3. Se non c'è nessun valore immediatamente dopo (G), nè trovi la dicitura MASSA A VUOTO, ritorna null. ATTENZIONE: (F.3) è facilmente confondibile, perchè si trova immediatamente prima: NON utilizzare MAI il valore di (F.3)."
       },
       {
         "name": "Categoria veicolo",
@@ -95,11 +95,11 @@
       {
         "name": "Massa rimorchiabile (frenato)",
         "type": "number",
-        "description": "Cod. (O.1) o (0.1) Numero in Kg della massa rimorchiabile (frenato). Fondamentale rispettare l'etichetta (O.1) o (0.1)per non confondere con altri numeri presenti."
+        "description": "Cod. (O.1) o (0.1) Numero in Kg della massa rimorchiabile (frenato). Fondamentale rispettare l'etichetta (O.1) o (0.1) per non confondere con altri numeri presenti. Se nessuna delle due etichette è presente, restituisci null."
       },
       {
         "name": "Cilindrata (cm³)",
-        "type": "integer",
+        "type": "number",
         "description": "Cod. (P.1) Numero in cm³ della cilindrata del motore."
       },
       {
