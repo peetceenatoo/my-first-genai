@@ -47,7 +47,7 @@ PIPELINE_DEFINITIONS: dict[str, PipelineDefinition] = {
 
 PIPELINE_VOTE_RUNS: dict[str, int] = {
     "id_ocr": 7,
-    "booklet_vision": 5,
+    "booklet_vision": 3,
 }
 
 
