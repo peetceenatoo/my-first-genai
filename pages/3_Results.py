@@ -118,7 +118,7 @@ else:
 review_threshold = 0.0
 only_needs_review = False
 if confidence_enabled:
-    review_threshold = 0.7
+    review_threshold = 0.8
     only_needs_review = st.checkbox("Show only needs review", value=False)
 doc_rows = []
 doc_rows.extend(
