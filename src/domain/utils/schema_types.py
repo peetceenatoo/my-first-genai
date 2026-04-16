@@ -45,6 +45,5 @@ class DocumentSchema:
     def to_dict(self) -> dict[str, Any]:
         return {
             "description": self.description,
-            "version": self.version,
             "fields": [field.to_dict() for field in self.fields],
         }
