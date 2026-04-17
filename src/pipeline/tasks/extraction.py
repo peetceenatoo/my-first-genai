@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import base64
-import io
 import json
 import re
 from typing import Any
-from PIL import Image
 
 from src.config import load_config
 from src.domain.utils.schema_types import SchemaField
@@ -18,8 +15,8 @@ DEFAULT_EXTRACTION_PROMPT = \
 Estrai metadati strutturati dal documento. Restituisci SOLO JSON valido (niente markdown, nessun commento, nessun testo extra).
 
 CONTESTO DI INPUT:
-- Potresti ricevere testo OCR/Textract oppure direttamente una o piu immagini del documento.
-- In entrambi i casi devi estrarre i campi richiesti usando solo evidenza presente nel documento.
+- Ricevi testo OCR/Textract derivato dal documento.
+- Estrai i campi richiesti usando solo evidenza presente nel testo del documento.
 
 REGOLE CRITICHE DI FORMATTAZIONE JSON:
 - Rispetta il tipo di campo indicato nello schema JSON: valori stringa (type=string, date) SEMPRE racchiusi tra virgolette, valori numerici (type=number, integer) mai racchiusi tra virgolette.
@@ -58,13 +55,6 @@ def _align_metadata(payload: dict[str, Any], fields: list[SchemaField]) -> dict[
 def _render_field(field: SchemaField) -> str:
     description = f" - {field.description}" if field.description else ""
     return f"- Name: {field.name} - Type: {field.field_type}{description}"
-
-
-def _encode_data_uri(image: Image.Image) -> str:
-    buf = io.BytesIO()
-    image.save(buf, format="PNG")
-    encoded = base64.b64encode(buf.getvalue()).decode()
-    return f"data:image/png;base64,{encoded}"
 
 
 def _build_schema_block(fields: list[SchemaField]) -> str:
@@ -147,58 +137,6 @@ def extract_metadata(
         fields=fields,
         user_content=[{"type": "text", "text": user_text}],
         model=model or config.id_extract_model or config.extract_model,
-        should_log_prompt=should_log_prompt,
-        should_log_response=should_log_response,
-    )
-
-
-def extract_metadata_from_images(
-    fields: list[SchemaField],
-    *,
-    images: list[Image.Image],
-    model: str,
-    log: bool = True,
-    log_prompt: bool | None = None,
-    log_response: bool | None = None,
-) -> dict[str, Any]:
-    should_log_prompt = log if log_prompt is None else log_prompt
-    should_log_response = log if log_response is None else log_response
-
-    field_lines = _build_schema_block(fields)
-    intro = "\n".join(
-        [
-            "## SCHEMA",
-            field_lines,
-            "",
-            "## INPUT TYPE",
-            "DOCUMENT_IMAGES",
-            "",
-            "## TASK",
-            "Estrai i campi richiesti leggendo direttamente le immagini allegate.",
-        ]
-    )
-
-    user_content: list[dict[str, Any]] = [{"type": "text", "text": intro}]
-    for image in images:
-        user_content.append(
-            {
-                "type": "image_url",
-                "image_url": {"url": _encode_data_uri(image)},
-            }
-        )
-
-    if should_log_prompt:
-        print(
-            "===== VISION EXTRACTION INPUT =====\n"
-            f"Image pages: {len(images)}\n"
-            "===== END VISION EXTRACTION INPUT =====\n",
-            flush=True,
-        )
-
-    return _run_extraction_request(
-        fields=fields,
-        user_content=user_content,
-        model=model,
         should_log_prompt=should_log_prompt,
         should_log_response=should_log_response,
     )

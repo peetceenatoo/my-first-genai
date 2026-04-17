@@ -2,7 +2,7 @@
 
 Extractly is a Streamlit app for defining document schemas and extracting structured metadata with traceable runs. It is designed to feel like a client-ready “Document Metadata Extraction Studio” with clear workflow steps and demo-friendly outputs.
 
-This repository is built around a practical pipeline choice: use OCR + LLM for easier documents by leveraging the low-cost Textract `DetectDocumentText` path, and switch to a mid-quality multimodal model (for example Haiku) for tougher documents. The goal is to avoid relying on expensive OCR AnalyzeDocument-style processing, which in this setup is considered both cost-inefficient and no longer necessary for many extraction workloads.
+This repository is built around a practical pipeline choice: use OCR + LLM across supported document types, with different model strengths depending on document complexity. The goal is to avoid relying on expensive OCR AnalyzeDocument-style processing, which in this setup is considered both cost-inefficient and no longer necessary.
 
 ## Quickstart
 
@@ -37,10 +37,10 @@ docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro -e EXTRACTLY_ENABLE_LOGGING
 ### Extraction Pipeline
 - Execution is enabled only for schemas with a registered pipeline handler.
 - Current handlers:
-  - `Carta d'Identità`: OCR pipeline with AWS Textract `DetectDocumentText` + LLM extraction (`eu.amazon.nova-lite-v1:0` by default).
-  - `Carta di circolazione`: vision pipeline that sends document images directly to a stronger model (`eu.anthropic.claude-haiku-4-5-20251001-v1:0` by default), with 5 extraction votes.
+  - `Carta d'Identità`: OCR pipeline with AWS Textract `DetectDocumentText` + cheap LLM extraction (Amazon Nova Lite).
+  - `Carta di circolazione`: OCR pipeline with AWS Textract `DetectDocumentText` + powerful LLM extraction (Anthropic Haiku 4.5` by default), with 3 votes.
 - Shared extraction contract:
-  - The extraction prompt is shared across OCR and vision input modes.
+  - The extraction prompt is shared across both OCR-based pipelines.
   - Output must be strict JSON aligned to schema field names and types.
 - **Output serialization:**
   - All extraction runs are stored in `data/runs/` with input filenames and output JSON.
@@ -69,11 +69,6 @@ pages/
 - Ensure IAM permissions include:
   - Bedrock runtime access (`bedrock:InvokeModel` or `bedrock-runtime:InvokeModel`)
   - Textract access (`textract:DetectDocumentText`)
-
-### Model Configuration
-- `EXTRACTLY_ID_MODEL`: model used by the ID-card OCR pipeline (default `eu.amazon.nova-lite-v1:0`).
-- `EXTRACTLY_BOOKLET_MODEL`: model used by the booklet vision pipeline (default `eu.anthropic.claude-haiku-4-5-20251001-v1:0`).
-- `EXTRACT_MODEL` is still accepted as compatibility fallback for ID extraction.
 
 ### Language
 
