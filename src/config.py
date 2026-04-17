@@ -44,7 +44,7 @@ def load_config() -> AppConfig:
         ),
         booklet_extract_model=os.getenv(
             "EXTRACTLY_BOOKLET_MODEL",
-            "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+            "eu.anthropic.claude-sonnet-4-20250514-v1:0",
         ),
         max_output_tokens=int(os.getenv("EXTRACTLY_MAX_TOKENS", "4096")),
         request_timeout_s=int(os.getenv("EXTRACTLY_TIMEOUT_S", "40")),
