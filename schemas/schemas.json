@@ -25,12 +25,12 @@
       {
         "name": "Targa",
         "type": "string",
-        "description": "Cod. (A) Targa del veicolo. DEVE essere un codice di ESATTAMENTE 7 o 8 caratteri alfanumerici (es. AB123CD, ABC1234). Cerca SOLO il valore che appare IMMEDIATAMENTE dopo l'etichetta (A) nel documento. NON utilizzare mai il numero della carta di circolazione (che è più lungo) o altri codici numerici. Se dopo (A) non trovi un codice di 7-8 caratteri, restituisci stringa vuota."
+        "description": "Cod. (A) Targa del veicolo. Nel documento possono esserci MULTIPLE occorrenze di (A): cerca l'etichetta (A) seguita da un codice di 7 oppure 8 caratteri alfanumerici. Se trovi più di un codice alfanumerico plausibile, scegli quello più corto, che abbia 7 oppure 8 caratteri (sicuramente non può avere 10 caratteri o più)."
       },
       {
         "name": "Data prima immatricolazione",
         "type": "date",
-        "description": "Cod. (B) Data della prima immatricolazione del veicolo. Formato tipico può essere espresso come data intera (es. DD/MM/YYYY) oppure solo come anno (es. YYYY); nel secondo caso, restituisci esclusivamente l'anno nella risposta."
+        "description": "Cod. (B) Data della prima immatricolazione del veicolo. Puoi trovarlo espresso sia come data intera (es. DD/MM/YYYY) che solo come anno (es. YYYY). In entrambi i casi, restituisci il valore estratto nel formato in cui è presente nel documento."
       },
       {
         "name": "Marca",
@@ -65,7 +65,7 @@
       {
         "name": "Massa in servizio",
         "type": "number",
-        "description": "Cod. (G) Cercare il valore IMMEDIATAMENTE DOPO l'etichetta (G), se presente. Se DOPO (G), non c'è un numero, allora cerca il numero dopo MASSA A VUOTO =, rimuovendo l'unità KG. Se trovi il numero preceduto da uno zero (es. MASSA A VUOTO = KG 0350), estrai il numero senza lo zero. Se non trovi un numero nè in corrispondenza di (G) nè in corrispondenza di MASSA A VUOTO = KG, restituisci null."
+        "description": "Cod. (G) Massa in servizio o massa a vuoto. ALGORITMO RIGOROSO: 1. Cerca il valore dopo (G). 2. Se (G) non è seguita da un valore, cerca MASSA A VUOTO = KG nel testo. 3. Se non c'è un valore né immediatamente dopo (G) né immediatamente dopo MASSA A VUOTO = KG, allora il valore da restituire è null."
       },
       {
         "name": "Categoria veicolo",
@@ -100,7 +100,7 @@
       {
         "name": "Massa rimorchiabile (frenato)",
         "type": "number",
-        "description": "Cod. (O.1) o (0.1) Numero in Kg della massa rimorchiabile (frenato). Il valore desiderato si trova tra l'etichetta (O.1) o (0.1) e l'etichetta (O.2) o (0.2)."
+        "description": "Cod. (O.1). Numero in Kg della massa rimorchiabile. ALGORITMO RIGOROSO: 1. Cerca (O.1) seguito da numero. 2. Se non presente, cerca (0.1) seguito da numero. 3. IGNORA completamente il testo narrativo - usa SOLO le etichette strutturate. 5. Se non c'è un valore nè dopo (O.1) nè dopo (0.1), allora il valore da restituire è null."
       },
       {
         "name": "Cilindrata (cm³)",
