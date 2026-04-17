@@ -11,7 +11,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 @dataclass(frozen=True)
 class AppConfig:
     aws_region: str
-    extract_model: str
     id_extract_model: str
     booklet_extract_model: str
     max_output_tokens: int
@@ -39,14 +38,13 @@ def load_config() -> AppConfig:
 
     return AppConfig(
         aws_region=aws_region,
-        extract_model=os.getenv("EXTRACT_MODEL", "eu.amazon.nova-lite-v1:0"),
         id_extract_model=os.getenv(
             "EXTRACTLY_ID_MODEL",
             os.getenv("EXTRACT_MODEL", "eu.amazon.nova-lite-v1:0"),
         ),
         booklet_extract_model=os.getenv(
             "EXTRACTLY_BOOKLET_MODEL",
-            "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
         ),
         max_output_tokens=int(os.getenv("EXTRACTLY_MAX_TOKENS", "4096")),
         request_timeout_s=int(os.getenv("EXTRACTLY_TIMEOUT_S", "40")),

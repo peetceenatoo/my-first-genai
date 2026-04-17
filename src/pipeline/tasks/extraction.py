@@ -136,7 +136,7 @@ def extract_metadata(
     return _run_extraction_request(
         fields=fields,
         user_content=[{"type": "text", "text": user_text}],
-        model=model or config.id_extract_model or config.extract_model,
+        model=model,
         should_log_prompt=should_log_prompt,
         should_log_response=should_log_response,
     )

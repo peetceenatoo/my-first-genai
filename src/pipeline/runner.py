@@ -157,8 +157,7 @@ def run_pipeline(
                     if textract_doc is None:
                         raise RuntimeError("OCR document is missing for OCR pipeline.")
                     model = (
-                        config.id_extract_model
-                        if pipeline.key == "id_ocr"
+                        config.id_extract_model if pipeline.key == "id_ocr"
                         else config.booklet_extract_model
                     )
                     extraction = extract_metadata(
