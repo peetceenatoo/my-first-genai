@@ -5,7 +5,6 @@ from typing import Any
 from PIL import Image
 
 from src.integrations.clients.textract_client import detect_text
-from src.integrations.utils.textract_types import TextractDocument
 
 
 def run_ocr(
@@ -13,7 +12,7 @@ def run_ocr(
     *,
     ocr_payload: dict[str, Any] | None = None,
     log: bool = True,
-) -> TextractDocument:
+) -> str:
     image_lines = [f"Pages: {len(images)}"]
     if images:
         image_lines.append("Image sizes:")
@@ -33,54 +32,32 @@ def run_ocr(
             flush=True,
         )
 
-    payload_textract_document = ocr_payload.get("textract_document") if ocr_payload else None
     payload_ocr_text = ocr_payload.get("ocr_text") if ocr_payload else None
 
-    if payload_textract_document is not None:
-        aggregated = payload_textract_document
-        if images and aggregated.num_pages <= 1:
-            aggregated.num_pages = len(images)
-    elif payload_ocr_text is not None:
-        aggregated = TextractDocument(
-            plain_text=str(payload_ocr_text),
-            num_pages=len(images) if images else 1,
-            textract_api_used="InputText",
-        )
+    if payload_ocr_text is not None:
+        plain_text = str(payload_ocr_text)
     elif not images:
-        aggregated = TextractDocument()
+        plain_text = ""
     else:
-        documents: list[TextractDocument] = []
+        page_texts: list[str] = []
 
-        for page_num, image in enumerate(images, start=1):
-            doc = detect_text(image, log=log)
-            doc.page_number = page_num
-            doc.num_pages = len(images)
-            documents.append(doc)
+        for image in images:
+            page_texts.append(detect_text(image, log=log))
 
-        # Aggregate all data into a single canonical OCR output.
-        aggregated = TextractDocument(
-            num_pages=len(images),
-            textract_api_used=documents[0].textract_api_used if documents else "DetectDocumentText",
+        plain_text = "\n---PAGE BREAK---\n".join(
+            text for text in page_texts if text
         )
-
-        for doc in documents:
-            aggregated.raw_blocks.extend(doc.raw_blocks)
-            if doc.plain_text:
-                if aggregated.plain_text:
-                    aggregated.plain_text += "\n---PAGE BREAK---\n" + doc.plain_text
-                else:
-                    aggregated.plain_text = doc.plain_text
 
     if log:
         print(
             "===== OCR OUTPUT =====\n"
-            f"Textract API: {aggregated.textract_api_used}\n"
-            f"Pages: {aggregated.num_pages}\n"
+            f"Textract API: {'InputText' if payload_ocr_text is not None else 'DetectDocumentText'}\n"
+            f"Pages: {len(images) if images else 1}\n"
             "## OCR TEXT (CANONICAL)\n"
-            + (aggregated.plain_text or "(empty)")
+            + (plain_text or "(empty)")
             + "\n"
             "===== END OCR OUTPUT =====\n\n\n",
             flush=True,
         )
 
-    return aggregated
+    return plain_text

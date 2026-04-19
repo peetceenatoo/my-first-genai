@@ -7,7 +7,6 @@ from typing import Any
 from src.config import load_config
 from src.domain.utils.schema_types import SchemaField
 from src.integrations.clients.bedrock_client import get_chat_completion
-from src.integrations.utils.textract_types import TextractDocument
 
 
 DEFAULT_EXTRACTION_PROMPT = \
@@ -107,7 +106,7 @@ def _run_extraction_request(
 def extract_metadata(
     fields: list[SchemaField],
     *,
-    textract_document: TextractDocument,
+    ocr_text: str,
     model: str | None = None,
     log: bool = True,
     log_prompt: bool | None = None,
@@ -119,7 +118,7 @@ def extract_metadata(
     should_log_response = log if log_response is None else log_response
 
     field_lines = _build_schema_block(fields)
-    context_text = textract_document.to_context_string() or "(empty OCR context)"
+    context_text = (ocr_text or "").strip() or "(empty OCR context)"
     user_text = "\n".join(
         [
             "## SCHEMA",
