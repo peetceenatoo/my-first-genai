@@ -8,9 +8,10 @@ The backend leverages LLMs from the Amazon Bedrock catalogue, and uses Amazon Te
 
 ## Quickstart
 
-To run with docker:
+### To run with docker:
 
 1. Configure AWS credentials with `aws configure` (this writes `~/.aws/credentials` and `~/.aws/config`).
+
 2. Build the image:
 
 ```bash
@@ -27,6 +28,21 @@ docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro extractly:latest
 
 ```bash
 docker run --rm -p 8501:8501 -v ~/.aws:/root/.aws:ro -e EXTRACTLY_ENABLE_LOGGING=1 extractly:latest
+```
+
+### To run locally, after installing all dependencies:
+
+1. Run the streamlit app:
+
+```bash
+streamlit run Home.py
+```
+
+2. Or run the app with extraction logging enabled:
+
+```powershell
+$env:EXTRACTLY_ENABLE_LOGGING = "1"
+streamlit run Home.py
 ```
 
 ## About
