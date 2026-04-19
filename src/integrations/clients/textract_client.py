@@ -8,9 +8,6 @@ from botocore.exceptions import NoCredentialsError
 from PIL import Image
 
 from src.config import load_config
-from src.integrations.utils.textract_types import (
-    TextractDocument,
-)
 
 
 def _image_to_bytes(image: Image.Image) -> bytes:
@@ -34,7 +31,7 @@ def detect_text(
     image: Image.Image,
     *,
     log: bool = True,
-) -> TextractDocument:
+) -> str:
     """
     Extract text from image using AWS Textract DetectDocumentText.
     
@@ -43,7 +40,7 @@ def detect_text(
         log: Enable fallback logs
     
     Returns:
-        TextractDocument with plain text
+        OCR plain text extracted
     """
     config = load_config()
     client = boto3.client(
@@ -62,17 +59,8 @@ def detect_text(
         response = client.detect_document_text(Document={"Bytes": document_bytes})
         blocks = response.get("Blocks", [])
         if not isinstance(blocks, list):
-            return TextractDocument(
-                raw_blocks=[],
-                plain_text="",
-                textract_api_used="DetectDocumentText",
-            )
-        plain_text = _extract_lines(blocks)
-        return TextractDocument(
-            raw_blocks=blocks,
-            plain_text=plain_text,
-            textract_api_used="DetectDocumentText",
-        )
+            return ""
+        return _extract_lines(blocks)
 
     except NoCredentialsError as exc:
         raise RuntimeError(
