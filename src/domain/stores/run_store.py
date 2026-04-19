@@ -14,7 +14,6 @@ class RunDocument:
     document_type: str
     extracted: dict[str, Any]
     corrected: dict[str, Any]
-    preview_image: str | None = None
     field_confidence: dict[str, float | None] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
@@ -40,7 +39,6 @@ class ExtractionRun:
                 {
                     "filename": doc.filename,
                     "document_type": doc.document_type,
-                    "preview_image": doc.preview_image,
                     "extracted": doc.extracted,
                     "corrected": doc.corrected,
                     "field_confidence": doc.field_confidence,
