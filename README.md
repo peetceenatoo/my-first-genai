@@ -81,6 +81,95 @@ pages/
 └── 3_Results.py               # Extraction results viewer
 ```
 
+## Backend Interface
+
+The `run_pipeline()` function in `src/pipeline/runner.py` is the **single entry point** for any frontend (Streamlit, REST API, CLI, etc.) to run document extraction. It provides a **frontend-agnostic interface** that handles all orchestration internally.
+
+### Input Contract: File Preparation
+
+Before calling `run_pipeline()`, prepare a list of document payloads. Each payload must contain **exactly one** of `ocr_text` or `file_bytes`:
+
+```python
+parsed_files = [
+    {
+        "name": "documento.pdf",           # filename with extension
+        "file_bytes": b"...binary data..."  # raw file bytes (for PDF, JPG, PNG, JPEG)
+    },
+    {
+        "name": "testo.txt",               # filename with extension
+        "ocr_text": "Already extracted text..."  # pre-extracted text (for .txt files)
+    },
+]
+```
+
+### Function Signature
+
+```python
+from src.pipeline.runner import run_pipeline, PipelineOptions
+from src.domain.stores.run_store import RunStore
+
+run = run_pipeline(
+    # REQUIRED parameters (3):
+    files: list[dict[str, Any]],           # File payloads as above
+    default_schema: DocumentSchema,        # Schema object (from domain.utils.schema_types)
+    options: PipelineOptions,              # Options(compute_confidence=True/False)
+    
+    # OPTIONAL parameters (3):
+    run_store: RunStore | None = None,     # Where to save run.json (None = no save)
+    schema_name: str | None = None,        # Custom run label (default: schema.name)
+    progress_callback: Callable[[str, float], None] | None = None,  # (msg, progress) callback
+) -> ExtractionRun:
+```
+
+### Required Parameters Explained
+
+| Parameter | Type | Description | Format |
+|-----------|------|-------------|--------|
+| `files` | `list[dict]` | Documents to process | Each dict must have `name` + (`ocr_text` OR `file_bytes`) |
+| `default_schema` | `DocumentSchema` | Schema defining document type and fields | Import from `src.domain.utils.schema_types` |
+| `options` | `PipelineOptions` | Extraction configuration | `PipelineOptions(compute_confidence=True/False)` |
+
+### Optional Parameters Explained
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `run_store` | `RunStore \| None` | `None` | If provided, saves results to `data/runs/`. If `None`, returns only in-memory result. |
+| `schema_name` | `str \| None` | `None` | Custom label for the run. If omitted, uses `default_schema.name`. |
+| `progress_callback` | `Callable \| None` | `None` | Callback function `(message: str, progress: float)` for UI updates. Called as processing proceeds. |
+
+### Return Value: `ExtractionRun` Structure
+
+```json
+{
+  "run_id": "run_20260419T152651Z_1c215c",
+  "started_at": "2026-04-19T15:26:51.123456+00:00",
+  "schema_name": "carta d'identita",
+  "status": "completed",
+  "compute_confidence": true,
+  "documents": [
+    {
+      "filename": "documento.pdf",
+      "document_type": "carta d'identita",
+      "extracted": {
+        "nome": "Mario",
+        "cognome": "Rossi",
+        "data_nascita": "1990-05-15"
+      },
+      "corrected": {...},
+      "field_confidence": {
+        "nome": 0.98,
+        "cognome": 0.95,
+        "data_nascita": 0.87
+      },
+      "warnings": [],
+      "errors": []
+    }
+  ]
+}
+```
+
+Access the result using: `run.to_dict()` to serialize to JSON, or access attributes directly (e.g., `run.documents[0].extracted`).
+
 ## Notes
 
 ### Access

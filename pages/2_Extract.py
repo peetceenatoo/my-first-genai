@@ -3,16 +3,14 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 import streamlit as st
-from PIL import Image
 
 from src.config import load_config
 from src.domain.stores.run_store import RunStore
 from src.domain.stores.schema_store import SchemaStore
-from src.pipeline.tasks.preprocess import preprocess
 from src.pipeline.runner import (
     PipelineOptions,
     run_pipeline,
-    supported_schema_status,
+    get_pipeline_for_schema,
 )
 from src.ui.components import (
     inject_branding,
@@ -39,10 +37,20 @@ if not schemas:
     st.warning("No schemas found. Create one in Schema Studio first.")
     st.stop()
 
-status_rows = supported_schema_status(schemas)
-supported_schema_names = [
-    str(row["schema"]) for row in status_rows if bool(row.get("is_supported"))
-]
+status_rows = []
+for schema in schemas:
+    pipeline = get_pipeline_for_schema(schema.name)
+    is_supported = pipeline is not None
+    status_rows.append(
+        {
+            "schema": schema.name,
+            "supported": "Supported" if is_supported else "Not supported",
+            "pipeline": pipeline.label if pipeline else "Not implemented",
+            "is_supported": is_supported,
+        }
+    )
+
+supported_schema_names = [ str(row["schema"]) for row in status_rows if bool(row.get("is_supported")) ]
 
 if not supported_schema_names:
     st.warning(
@@ -106,16 +114,15 @@ if st.button("Run extraction", type="primary", width="stretch"):
 
         if filename.lower().endswith(".txt"):
             content = upload.read().decode("utf-8", errors="ignore")
-            blank_image = Image.new("RGB", (800, 1000), color="white")
-            images = [blank_image]
             payload = {
                 "name": filename,
-                "images": images,
                 "ocr_text": content,
             }
         else:
-            images = preprocess(upload, filename)
-            payload = {"name": filename, "images": images}
+            payload = {
+                "name": filename,
+                "file_bytes": upload.read(),
+            }
         parsed_files.append(payload)
 
         progress.progress(idx / len(files), f"Parsed {filename}")

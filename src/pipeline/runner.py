@@ -2,17 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import base64
-import io
 from typing import Any, Callable
-
-from PIL import Image
 
 from src.config import load_config
 from src.domain.utils.schema_types import DocumentSchema
 from src.domain.stores.run_store import ExtractionRun, RunDocument, RunStore
 from src.pipeline.tasks.extraction import extract_metadata
 from src.pipeline.tasks.ocr import run_ocr
+from src.pipeline.tasks.preprocess import preprocess
 from src.pipeline.tasks.voting import run_vote_cycle
 
 
@@ -64,30 +61,58 @@ def get_pipeline_for_schema(schema_name: str) -> PipelineDefinition | None:
     return None
 
 
-def supported_schema_status(schemas: list[DocumentSchema]) -> list[dict[str, str | bool]]:
-    rows: list[dict[str, str | bool]] = []
-    for schema in schemas:
-        pipeline = get_pipeline_for_schema(schema.name)
-        is_supported = pipeline is not None
-        rows.append(
-            {
-                "schema": schema.name,
-                "supported": "Supported" if is_supported else "Not supported",
-                "pipeline": pipeline.label if pipeline else "Not implemented",
-                "is_supported": is_supported,
-            }
+def _extract_document_votes(
+    ocr_text: str,
+    schema_fields: list,
+    pipeline: PipelineDefinition,
+    config,
+    options: PipelineOptions,
+    log: bool,
+) -> tuple[dict[str, Any], dict[str, float | None]]:
+    """Extract metadata from OCR text with optional vote cycle."""
+    field_names = [field.name for field in schema_fields]
+
+    def extract_single_vote(vote_index: int) -> dict[str, Any]:
+        if pipeline.key in {"id_ocr", "booklet_ocr"}:
+            model = (
+                config.id_extract_model if pipeline.key == "id_ocr"
+                else config.booklet_extract_model
+            )
+            extraction = extract_metadata(
+                schema_fields,
+                ocr_text=ocr_text,
+                model=model,
+                log=log,
+                log_prompt=(log and vote_index == 0),
+                log_response=log,
+            )
+            return extraction.get("metadata", {})
+
+        raise RuntimeError(f"Unsupported pipeline handler: {pipeline.key}")
+
+    if options.compute_confidence:
+        vote_runs = PIPELINE_VOTE_RUNS.get(pipeline.key)
+        if vote_runs is None:
+            raise RuntimeError(f"Unsupported pipeline handler: {pipeline.key}")
+
+        return run_vote_cycle(
+            field_names=field_names,
+            vote_runs=vote_runs,
+            extract_single_vote=extract_single_vote,
         )
-    return rows
+    else:
+        return extract_single_vote(0), {}
+
 
 def run_pipeline(
     *,
     files: list[dict[str, Any]],
     default_schema: DocumentSchema,
-    run_store: RunStore,
     options: PipelineOptions,
+    run_store: RunStore | None = None,
     schema_name: str | None = None,
     progress_callback: Callable[[str, float], None] | None = None,
-) -> ExtractionRun:  # sourcery skip: low-code-quality
+) -> ExtractionRun:
     if default_schema is None:
         raise ValueError("A schema must be provided to run extraction.")
 
@@ -114,83 +139,49 @@ def run_pipeline(
             progress = min(current_step / total_steps, 1.0)
             progress_callback(message, progress)
 
-    def encode_preview(images: list[Image.Image]) -> str | None:
-        if not images:
-            return None
-        preview = images[0].copy()
-        preview.thumbnail((720, 720))
-        buf = io.BytesIO()
-        preview.save(buf, format="PNG")
-        return base64.b64encode(buf.getvalue()).decode()
-
+    # For each uploaded document, that could either contain raw_text or file_bytes
     for idx, payload in enumerate(files, start=1):
+        # Get the filename and possibly the text (.txt)
         filename = payload["name"]
-        images: list[Image.Image] = payload["images"]
-        images_for_llm = images
-        textract_doc = payload.get("textract_document")
+        ocr_text = payload.get("ocr_text")
+        # If the text was not provided (.jpg, .pdf, etc), preprocess or raise an error 
+        if ocr_text is None:
+            file_bytes = payload.get("file_bytes")
+            if file_bytes is None:
+                raise ValueError(f"Missing ocr_text or file_bytes for '{filename}'.")
+            images_for_llm = preprocess(file_bytes, filename)
 
         report_progress(f"Running OCR {idx}/{total_docs} • {filename}")
-        textract_doc = run_ocr(
-            images_for_llm,
-            ocr_payload=payload,
-            log=log,
-        )
-        doc_type = default_schema.name
-        report_progress(f"Applying schema {idx}/{total_docs} • {filename}")
+
+        # In case the image was not provided in form of text already, run OCR
+        if ocr_text is None:
+            ocr_text = run_ocr(images_for_llm, ocr_payload=payload, log=log)
+
+        report_progress(f"Extracting {idx}/{total_docs} • {filename} [{pipeline.label}]")
 
         errors: list[str] = []
         extracted: dict[str, Any] = {}
         field_confidence: dict[str, float | None] = {}
-
-        report_progress(
-            f"Extracting {idx}/{total_docs} • {filename} [{pipeline.label}]"
-        )
+        
         try:
-            vote_runs = PIPELINE_VOTE_RUNS.get(pipeline.key)
-            if vote_runs is None:
-                raise RuntimeError(f"Unsupported pipeline handler: {pipeline.key}")
-
-            field_names = [field.name for field in default_schema.fields]
-
-            def extract_single_vote(vote_index: int) -> dict[str, Any]:
-                if pipeline.key in {"id_ocr", "booklet_ocr"}:
-                    if textract_doc is None:
-                        raise RuntimeError("OCR document is missing for OCR pipeline.")
-                    model = (
-                        config.id_extract_model if pipeline.key == "id_ocr"
-                        else config.booklet_extract_model
-                    )
-                    extraction = extract_metadata(
-                        default_schema.fields,
-                        textract_document=textract_doc,
-                        model=model,
-                        log=log,
-                        log_prompt=(log and vote_index == 0),
-                        log_response=log,
-                    )
-                    return extraction.get("metadata", {})
-
-                raise RuntimeError(f"Unsupported pipeline handler: {pipeline.key}")
-
-            extracted, field_confidence = run_vote_cycle(
-                field_names=field_names,
-                vote_runs=vote_runs,
-                extract_single_vote=extract_single_vote,
+            extracted, field_confidence = _extract_document_votes(
+                ocr_text=ocr_text,
+                schema_fields=default_schema.fields,
+                pipeline=pipeline,
+                config=config,
+                options=options,
+                log=log,
             )
-
-            if not options.compute_confidence:
-                field_confidence = {}
         except Exception as exc:
             errors.append(str(exc))
 
-        preview_image = encode_preview(images)
+        doc_type = default_schema.name
         documents.append(
             RunDocument(
                 filename=filename,
                 document_type=doc_type,
                 extracted=extracted,
                 corrected=extracted.copy(),
-                preview_image=preview_image,
                 field_confidence=field_confidence,
                 errors=errors,
             )
@@ -208,5 +199,6 @@ def run_pipeline(
         compute_confidence=options.compute_confidence,
     )
     report_progress("Finalizing run")
-    run_store.save(run)
+    if run_store is not None:
+        run_store.save(run)
     return run
